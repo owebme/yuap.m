@@ -1,0 +1,409 @@
+<alarm-settings class="section section__down alarm__settings">
+
+    <div class="section__down__wrapper alarm__settings__wrapper { alarm__settings--off : !alarm.active } { alarm__settings--dateSelect : section === "date" } { alarm__settings--phone : section === "phone" }">
+        <div onclickDelegateUpdate={ switcher } class="alarm__settings__switch">ON</div>
+        <div onclickDelegateUpdate={ sectionDate } class="alarm__settings__date__select">
+            <div class="alarm__settings__date__text"><span class="alarm__settings__day">{ utils.dayAlarm(alarm.date) }</span> { utils.monthAlarm(alarm.date) }</div>
+            <div class="alarm__settings__weekday">{ utils.dayOfWeek(alarm.date) }</div>
+        </div>
+        <div class="alarm__settings__date">
+            <div class="alarm__settings__date__container">
+                <div id="alarm__settings__iscroll__days" class="alarm__settings__iscroll__wrapper">
+                    <div class="alarm__settings__iscroll__container">
+                        <div each={item in days} no-reorder data-value="{ item.value }" class="alarm__settings__date__item { alarm__settings__item--active : item.active }">{ item.title }</div>
+                    </div>
+                </div>
+            </div>
+            <div class="alarm__settings__date__container">
+                <div id="alarm__settings__iscroll__months" class="alarm__settings__iscroll__wrapper">
+                    <div class="alarm__settings__iscroll__container">
+                        <div each={item in months} no-reorder data-value="{ item.value }" class="alarm__settings__date__item { alarm__settings__item--active : item.active }">{ item.title }</div>
+                    </div>
+                </div>
+            </div>
+            <div onclickDelegate={ setDateNow } class="alarm__settings__date__now">
+                <span class="alarm__settings__date__now__title">Сегодня:</span>&nbsp; { dateNow }
+            </div>
+        </div>
+        <div class="alarm__settings__time">
+            <div class="alarm__settings__time__container">
+                <div id="alarm__settings__iscroll__hours" class="alarm__settings__iscroll__wrapper">
+                    <div class="alarm__settings__iscroll__container">
+                        <div each={item in hours} no-reorder data-value="{ item.value }" class="alarm__settings__time__item { alarm__settings__item--active : item.active }">{ item.title }</div>
+                    </div>
+                </div>
+            </div>
+            <div class="alarm__settings__time__dots">:</div>
+            <div class="alarm__settings__time__container">
+                <div id="alarm__settings__iscroll__minutes" class="alarm__settings__iscroll__wrapper">
+                    <div class="alarm__settings__iscroll__container">
+                        <div each={item in minutes} no-reorder data-value="{ item.value }" class="alarm__settings__time__item { alarm__settings__item--active : item.active }">{ item.title }</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="alarm__settings__phone">
+            <div class="alarm__settings__phone__text">{ alarm.phone }</div>
+            <div if={ alarm.name } class="alarm__settings__phone__name">{ alarm.name }</div>
+            <div class="alarm__settings__phone__button">
+                <div class="alarm__settings__phone__button__text">позвонить</div>
+            </div>
+        </div>
+        <div class="alarm__settings__buttons__left">
+            <div onclickDelegateUpdate={ sectionTime } class="alarm__settings__buttons__left__btn alarm__settings__button__options { alarm__settings__buttons__left__btn--active : section === "time" || section === "date" }"></div>
+            <div onclickDelegateUpdate={ sectionPhone } class="alarm__settings__buttons__left__btn alarm__settings__button__phone { alarm__settings__buttons__left__btn--active : section === "phone" }"></div>
+        </div>
+        <div class="alarm__settings__buttons">
+            <div onclickDelegate={ success } riot-item=".alarm__settings" riot-removeClass="section--show" class="alarm__settings__button alarm__settings__button__success"></div>
+            <div onclickDelegate={ cancel } riot-item=".alarm__settings" riot-removeClass="section--show" class="alarm__settings__button alarm__settings__button__cancel"></div>
+        </div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $alarmList = $.parent.tags["alarm-list"];
+
+    $.activity = false;
+
+    $.section = "time";
+
+    $.alarm = {
+        id: null,
+        show: false,
+        date: "2016-04-03",
+        time: "720",
+        active: true
+    };
+
+    $.utils = {
+
+        dateNow: function(){
+            return tempus();
+        },
+
+        getHours: function(hours){
+            var data = [];
+            for (var i = 9; i < 20; i++){
+                var hour = i;
+                if (hour < 10) hour = "0" + hour;
+                data.push({
+                    title: hour,
+                    value: i,
+                    active: hours === i ? true : false
+                });
+            }
+            return data;
+        },
+
+        getMinutes: function(mins){
+            var data = [];
+            for (var i = 0; i < 12; i++){
+                var min = i * 5;
+                if (min < 10) min = "0" + (min === 0 ? 0 : min);
+                data.push({
+                    title: min,
+                    value: i * 5,
+                    active: mins === i ? true : false
+                });
+            }
+            return data;
+        },
+
+        getDays: function(day, count){
+            var data = [];
+            for (var i = 1; i < count + 1; i++){
+                var d = i;
+                if (d < 10) d = "0" + d;
+                data.push({
+                    title: d,
+                    value: i,
+                    active: day === i ? true : false
+                });
+            }
+            return data;
+        },
+
+        getMonths: function(month){
+            var data = [];
+            for (var i = 1; i < 13; i++){
+                data.push({
+                    title: tempus({month: i}).format('%B'),
+                    value: i,
+                    active: month === i ? true : false
+                });
+            }
+            return data;
+        },
+
+        dayOfWeek: function(date){
+            return tempus(date).dayOfWeek("short");
+        },
+
+        dayAlarm: function(date){
+            return tempus(date).format('%d');
+        },
+
+        monthAlarm: function(date){
+            return tempus(date).format('%B');
+        }
+    };
+
+    var now = $.utils.dateNow();
+
+    $.dayCount = now.dayCount();
+    $.hours = $.utils.getHours();
+    $.minutes = $.utils.getMinutes();
+    $.days = $.utils.getDays(now.format('%d'), 31);
+    $.months = $.utils.getMonths(now.format('%m'));
+
+    $.switcher = function(){
+        if ($.alarm.active) $.alarm.active = false;
+        else $.alarm.active = true;
+    };
+
+    // return section settings
+    $.sectionTime = function(){
+        $.section = "time";
+    };
+
+    // open section date
+    $.sectionDate = function(){
+        if ($.section === "date") $.section = "time";
+        else $.section = "date";
+    };
+
+    // open section phone
+    $.sectionPhone = function(){
+        $.section = "phone";
+    };
+
+    // set date now
+    $.setDateNow = function(){
+        var dateNow = tempus();
+        $.alarm.date = dateNow.format('%Y-%m-%d');
+
+        var day = dateNow.format('%d'),
+            month = dateNow.format('%m'),
+            dayCount = dateNow.dayCount();
+
+        if ($.dayCount != dayCount){
+            $.days = $.utils.getDays(day, dayCount);
+            $.daysScroll.refresh();
+        }
+        $.activity = false;
+        $.daysScroll.scrollTo(day);
+        $.monthsScroll.scrollTo(month);
+        this.update();
+        setTimeout(function(){
+            $.activity = true;
+        }, 500);
+    };
+
+    $.alarmShow = function(data){
+        $.alarm = JSON.stringify(data.alarm);
+        $.alarm = JSON.parse($.alarm);
+        $.section = data.section;
+
+        var day = tempus($.alarm.date).format('%d'),
+            month = tempus($.alarm.date).format('%m'),
+            dayCount = tempus($.alarm.date).dayCount();
+
+        if ($.dayCount != dayCount){
+            $.days = $.utils.getDays(day, dayCount);
+            $.daysScroll.refresh();
+        }
+        $.daysScroll.scrollTo(day);
+        $.monthsScroll.scrollTo(month);
+        $.hoursScroll.scrollTo(Math.floor($.alarm.time / 60));
+        $.minutesScroll.scrollTo($.alarm.time - Math.floor($.alarm.time / 60) * 60);
+        $.dateNow = tempus().format('%d %b, %a');
+
+        //$.alarm.show = true;
+        app.utils.onEndTransition($scope[0], function(){
+            $.activity = true;
+            $.update();
+        });
+    };
+
+    // click button success
+    $.success = function(){
+        var time = $.hoursScroll.value * 60 + $.minutesScroll.value;
+        $.alarm.time = time;
+        $alarmList.data.forEach(function(item, i) {
+            if (item.id === $.alarm.id){
+                $alarmList.data[i] = $.alarm;
+            }
+        });
+        $alarmList.data.sort($.compareDate);
+        $alarmList.update();
+        //$.alarm.show = false;
+        $.activity = false;
+    };
+
+    // click button cancel
+    $.cancel = function(){
+        //$.alarm.show = false;
+        $.activity = false;
+    };
+
+    $.compareDate = function(a, b){
+        if (a.date > b.date) return 1;
+        if (a.date < b.date) return -1;
+    };
+
+    this.on("mount", function(){
+
+        // open section phone
+        // $scope.find(".alarm__settings__button__phone").on(clickEvent, function(){
+        //     $$(this)
+        //     .addClass("alarm__settings__buttons__left__btn--active")
+        //     .siblings()
+        //     .removeClass("alarm__settings__buttons__left__btn--active");
+        //     $scope.addClass("alarm__settings--phone");
+        // });
+
+        // return section settings
+        // $scope.find(".alarm__settings__button__options").on(clickEvent, function(){
+        //     $$(this)
+        //     .addClass("alarm__settings__buttons__left__btn--active")
+        //     .siblings()
+        //     .removeClass("alarm__settings__buttons__left__btn--active");
+        //     $scope.removeClass("alarm__settings--phone");
+        // });
+
+        // click button success
+        // $scope.find(".alarm__settings__button").on(clickEvent, function(){
+        //     $scope.removeClass("section--show");
+        // });
+
+        // change select date
+        // $scope.find(".alarm__settings__date__select").on(clickEvent, function(){
+        //     if ($scope.attr("class").match(/dateSelect/)){
+        //         $scope.removeClass("alarm__settings--dateSelect");
+        //     }
+        //     else {
+        //         $scope.addClass("alarm__settings--dateSelect");
+        //     }
+        // });
+
+        var iScrollSelect = function(){};
+
+        iScrollSelect.prototype = {
+
+            init: function(name, item){
+
+                var _this = this,
+                    i = 0;
+
+                this.wrapper = $scope.find("#alarm__settings__iscroll__" + name);
+
+                this.container = this.wrapper.children();
+
+                this.step = parseInt(this.container.find(".alarm__settings__" + item + "__item:first").height());
+
+                this.item = item;
+
+                this.container.find(".alarm__settings__" + item + "__item").each(function(){
+                    this.setAttribute("data-step", i);
+                    i += _this.step;
+                });
+
+                this.scroll = new IScroll(this.wrapper[0], {
+                    scrollX: false,
+                    scrollY: true,
+                    snap: true,
+                    snapSpeed: item === "time" ? 200 : 300,
+                    probeType: 3
+                });
+
+                (function animationAlarmLoops(){
+                    app.utils.raf(animationAlarmLoops);
+                    app.utils.getScroll(_this.scroll);
+                })();
+
+                this.wrapper.on(clickEvent, ".alarm__settings__" + item + "__item", function(){
+                    _this.scroll.scrollToElement(this, 200, null, null, IScroll.utils.ease.cubicOut);
+                });
+
+                this.scroll.on('scrollEnd', function(){
+                    var pos = Math.abs(this.y),
+                        $elem = _this.container.find(".alarm__settings__" + item + "__item[data-step='" + pos + "']");
+
+                    if ($elem.length){
+                        $elem
+                        .addClass("alarm__settings__item--active")
+                        .siblings()
+                        .removeClass("alarm__settings__item--active");
+
+                        _this.value = parseInt($elem[0].getAttribute("data-value"));
+
+                        if ($.activity){
+                            if (name === "months") _this.calcDays();
+                            if (name === "days" || name === "months"){
+                                var day = $.daysScroll.value,
+                                    month = $.monthsScroll.value;
+
+                                if (day < 10) day = "0" + day;
+                                if (month < 10) month = "0" + month;
+console.log("scrollEnd");
+                                $.alarm.date = $.alarm.date.replace(/(\d+)-\d+-\d+/g, "$1-" + month + "-" + day);
+                                $.update();
+                            }
+                        }
+                    }
+                });
+            },
+
+            calcDays: function(){
+                var dayCount = tempus({month: this.value}).dayCount();
+                if ($.dayCount != dayCount){
+                    $.days = $.utils.getDays($.daysScroll.value, dayCount);
+                    $.dayCount = parseInt(dayCount);
+                    if ($.daysScroll.value && $.daysScroll.value > $.dayCount) {
+                        $.daysScroll.value = $.dayCount;
+                        $.daysScroll.scrollTo($.dayCount);
+                    }
+                    //$.update();
+                    $.daysScroll.refresh();
+                }
+            },
+
+            refresh: function(){
+
+                this.scroll.refresh();
+
+                var _this = this,
+                    i = 0;
+
+                _this.container.find(".alarm__settings__" + _this.item + "__item").each(function(){
+                    this.setAttribute("data-step", i);
+                    i += _this.step;
+                });
+            },
+
+            scrollTo: function(item){
+                if (!item && item !== 0) return;
+                item = parseInt(item);
+                this.value = item;
+                this.scroll.scrollToElement(this.container.find("div[data-value='" + item + "']")[0], 1);
+            }
+        };
+
+        $.hoursScroll = new iScrollSelect();
+        $.hoursScroll.init("hours", "time");
+
+        $.minutesScroll = new iScrollSelect();
+        $.minutesScroll.init("minutes", "time");
+
+        $.daysScroll = new iScrollSelect();
+        $.daysScroll.init("days", "date");
+
+        $.monthsScroll = new iScrollSelect();
+        $.monthsScroll.init("months", "date");
+    });
+
+</script>
+
+</alarm-settings>

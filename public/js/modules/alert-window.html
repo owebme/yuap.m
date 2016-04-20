@@ -1,0 +1,53 @@
+<alert-window class="alert__window { alert__window--active : active }">
+
+    <div class="alert__window__wrapper">
+        <div class="alert__window__header">
+            <div class="alert__window__title">{ data.title }</div>
+            <div if={ data.subtitle } class="alert__window__subtitle"></div>
+            <input if={ data.input } type="text" class="alert__window__input" autocomplete="off" spellcheck="off">
+        </div>
+        <div class="alert__window__buttons">
+            <div onclickDelegateUpdate={ onCancel } class="alert__window__button { alert__window__button--active : data.button === "cancel" }">{ data.cancel && data.cancel.title ? data.cancel.title : "Отмена" }</div>
+            <div onclickDelegateUpdate={ onSuccess } class="alert__window__button { alert__window__button--active : data.button === "success" }">{ data.success && data.success.title ? data.success.title : "OK" }</div>
+        </div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root);
+
+    $.active = false;
+
+    $.data = {
+        title: null,
+        subtitle: null
+    };
+
+    $.show = function(data){
+        if (data){
+            $.data = data;
+            $.active = true;
+            $.update();
+        }
+    };
+
+    $.onSuccess = function(){
+        if ($.data.success && typeof $.data.success.callback === "function"){
+            $.data.success.callback();
+        }
+        $.data.button = "success";
+        $.active = false;
+    };
+
+    $.onCancel = function(){
+        if ($.data.cancel && typeof $.data.cancel.callback === "function"){
+            $.data.cancel.callback();
+        }
+        $.data.button = "cancel";
+        $.active = false;
+    };
+
+</script>
+
+</alert-window>

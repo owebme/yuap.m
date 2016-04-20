@@ -1,0 +1,182 @@
+<dashboard-list class="section section__primary">
+
+    <div id="dashboard__scroll" class="section__wrapper">
+        <div class="section__container section__container__dashboard">
+            <header class="header__dashboard">
+                <div class="header__title">Инфо-панель</div>
+                <div class="header__left">
+                    <div class="dashboard__openMenu header__icon UI__menu"><div class="UI__menu__item"></div></div>
+                </div>
+                <div class="header__right">
+                    <div onclickDelegate={ openDataList } class="dashboard__next__section header__icon header__icon__next__white"></div>
+                </div>
+            </header>
+            <div onclickDelegate={ openBalance } class="dashboard__tile dashboard__tile__balance">
+                <div class="dashboard__tile__label">пополнить</div>
+                <div id="dashboard__balance" class="dashboard__circle"></div>
+                <div class="dashboard__title">
+                    <div class="dashboard__subtitle">Ваш баланс:</div>
+                    <div class="dashboard__balance">4 750,0 <span class="dashboard__balance__rub">Р</span></div>
+                </div>
+            </div>
+            <div onclickDelegate={ openTraffic } class="dashboard__tile dashboard__tile__traffic">
+                <div class="dashboard__tile__label">подробнее</div>
+                <div id="dashboard__traffic__score" class="dashboard__circle"></div>
+                <div class="dashboard__title">Входящие</div>
+            </div>
+            <div class="dashboard__tile">
+                <span id="dashboard__traffic__graph">5,3,9,6,5,9,7,3,5,2</span>
+            </div>
+            <div onclickDelegate={ openWeather } class="dashboard__tile dashboard__tile__weather">
+                <div class="dashboard__tile__label">сегодня</div>
+                <canvas id="partly-cloudy-night" class="dashboard__weather__canvas"></canvas>
+                <div class="dashboard__weather">
+                    <div class="dashboard__weather__temp">+6</div>
+                    <div class="dashboard__weather__text">Облачно, дождь</div>
+                    <div class="dashboard__weather__text">70% / 745 мм рт.с.</div>
+                </div>
+            </div>
+            <div onclickDelegate={ openCurrency } class="dashboard__tile dashboard__tile__currency">
+                <div class="dashboard__currency">
+                    <div class="dashboard__currency__title">$</div>
+                    <div class="dashboard__currency__value">68,89</div>
+                </div>
+                <div class="dashboard__currency">
+                    <div class="dashboard__currency__title">&euro;</div>
+                    <div class="dashboard__currency__value">78,27</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $section = $$($.parent.root);
+
+    // open next section
+    $.openDataList = function(e){
+        app.sections.nav("data-list");
+    };
+
+    // open balance
+    $.openBalance = function(e){
+        $.openSection("balance");
+    };
+
+    // open traffic
+    $.openTraffic = function(e){
+        $.openSection("traffic");
+    };
+
+    // open weather
+    $.openWeather = function(e){
+        $.openSection("weather");
+    };
+
+    // open currency
+    $.openCurrency = function(e){
+        $.openSection("currency");
+    };
+
+    // open inner section
+    $.openSection = function(section){
+        $.sections[section].section.addClass("section--show");
+        $scope.addClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.addClass("section--active").removeClass("section--show");
+            $.sections[section].tag.iScrollList.refresh();
+            // if (section === "weather"){
+            //     $.sections[section].tag.skycons.play();
+            // }
+        });
+    };
+
+    $.closeSection = function(section){
+        $.sections[section].section.addClass("section--hidden");
+        $scope.removeClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.removeClass("section--active").removeClass("section--hidden");
+            // if (section === "weather"){
+            //     $.sections[section].tag.skycons.pause();
+            // }
+        });
+    };
+
+    this.on("mount", function(){
+
+        $.sections = {
+            balance: {
+                tag: $.parent.tags["dashboard-balance"],
+                section: $$($.parent.tags["dashboard-balance"].root)
+            },
+            traffic: {
+                tag: $.parent.tags["dashboard-traffic"],
+                section: $$($.parent.tags["dashboard-traffic"].root)
+            },
+            weather: {
+                tag: $.parent.tags["dashboard-weather"],
+                section: $$($.parent.tags["dashboard-weather"].root)
+            },
+            currency: {
+                tag: $.parent.tags["dashboard-currency"],
+                section: $$($.parent.tags["dashboard-currency"].root)
+            }
+        };
+
+        $scope.find("#dashboard__balance").circliful({
+            foregroundColor: "#68f5ff",
+            backgroundColor: "#f0f4fb",
+            textColor: "#333947",
+            foregroundBorderWidth: 10,
+            backgroundBorderWidth: 10,
+            percent: 88
+        });
+
+        $scope.find("#dashboard__traffic__score").circliful({
+            foregroundColor: "#fcde30",
+            backgroundColor: "#f0f4fb",
+            textColor: "#333947",
+            foregroundBorderWidth: 10,
+            backgroundBorderWidth: 10,
+            textSize: "35px",
+            showPercent: false,
+            percent: 54,
+            target: 12
+        });
+
+        $scope.find("#dashboard__traffic__graph").peity("bar", {
+            fill: ["#839ae3", "#62e1d8"],
+            width: "100%",
+            height: "100px"
+        });
+
+        if (typeof Skycons !== 'undefined'){
+            var skycons = new Skycons(
+                {"color": "#839ae3"},
+                {"resizeClear": true}
+            );
+            skycons.add("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
+            skycons.play();
+        };
+
+        $.iScrollList = new IScroll($["dashboard__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+        app.iScrollDashboardList = $.iScrollList;
+
+    });
+
+</script>
+
+</dashboard-list>

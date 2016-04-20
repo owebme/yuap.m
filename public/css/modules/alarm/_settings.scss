@@ -1,0 +1,412 @@
+.alarm__settings {
+    z-index:101;
+}
+.alarm__settings__wrapper {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    // background:#2f3042;
+    background:#313344;
+    background:linear-gradient(to bottom, darken($black_light, 4%), darken($black_dark, 2%));
+    // background:linear-gradient(#333649, #1b1f28);
+    color:$azure_light;
+    font-family:$roboto;
+    z-index:2;
+}
+.alarm__settings__date__select {
+    position:absolute;
+    top:7%;
+    left:12.5%;
+    width:75%;
+    font-size:29px;
+    line-height:29px;
+    font-weight:300;
+    text-align:center;
+    white-space:nowrap;
+}
+.alarm__settings__date__text:after {
+    content:"";
+    display:inline-block;
+    position:relative;
+    top:-8px;
+    border-top: 8px solid rgba($azure_light,.52);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    margin:0 0 0 6px;
+}
+.alarm__settings__day {
+    color:#fff;
+    font-weight:400;
+}
+.alarm__settings__weekday {
+    color:#fff;
+    font-size:27px;
+    line-height:27px;
+    font-weight:400;
+    margin-top:5px;
+    text-transform:lowercase;
+}
+.alarm__settings__date {
+    position:absolute;
+    top:15%;
+    left:0;
+    width:100%;
+    height:85%;
+    padding:0 12.5% 0 7.5%;
+    @include flex("row", "center", "center");
+    background:linear-gradient(to top, #313344 20%, rgba(#313344,0));
+    overflow:hidden;
+    transform:translate3d(0, 101%, 0);
+    z-index:3;
+}
+.alarm__settings__date:before {
+    content:"";
+    @include abs();
+    background:linear-gradient(to top, rgba($black_light,.3) 80%, rgba($black_light,0));
+}
+.alarm__settings__date__container {
+    position:relative;
+    top:-5%;
+    width:50%;
+    height:288px;
+    overflow:hidden;
+    text-align:center;
+}
+#alarm__settings__iscroll__days,
+#alarm__settings__iscroll__months,
+.alarm__settings__date__item {
+    height:48px;
+}
+.alarm__settings__date__item {
+    width:100%;
+    font-size:32px;
+    line-height:48px;
+    font-weight:300;
+    text-transform:lowercase;
+}
+#alarm__settings__iscroll__months {
+    text-align:left;
+}
+.alarm__settings__date__now {
+    position:absolute;
+    bottom:7%;
+    left:0;
+    width:100%;
+    font-size:23px;
+    line-height:25px;
+    font-weight:400;
+    text-align:center;
+}
+.alarm__settings__date__now__title {
+    color:#fff;
+    font-weight:300;
+}
+.d-ios {
+    .alarm__settings__date__now {
+        font-family:$arial;
+    }
+}
+.alarm__settings__time {
+    display:flex;
+    flex-direction:row;
+    width:75%;
+    height:288px;
+    overflow:hidden;
+}
+.alarm__settings__time__container {
+    position:relative;
+    width:50%;
+    text-align:center;
+}
+.alarm__settings__iscroll__wrapper {
+    @include abs();
+}
+.alarm__settings__iscroll__container {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+}
+#alarm__settings__iscroll__hours,
+#alarm__settings__iscroll__minutes,
+.alarm__settings__time__item {
+    height:72px;
+}
+.alarm__settings__time__item {
+    width:100%;
+    font-size:52px;
+    line-height:72px;
+    font-weight:300;
+}
+.alarm__settings__time__dots {
+    position:relative;
+    top:1px;
+    right:-2px;
+    font-size:52px;
+    line-height:62px;
+    font-weight:300;
+}
+.alarm__settings__time__dots,
+.alarm__settings__item--active {
+    color:#fff;
+}
+.alarm__settings__switch {
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    position:absolute;
+    top:0;
+    right:0;
+    color:#fff;
+    padding:15px 12px 0 0;
+    z-index:2;
+}
+.alarm__settings__switch:before {
+    content:"";
+    position:absolute;
+    top:0;
+    right:0;
+    width:110%;
+    height:130%;
+}
+.alarm__settings__switch:after {
+    content:"";
+    display:block;
+    width:24px;
+    height:24px;
+    background:url(/public/images/alarm_white_fill.svg) no-repeat 0 0 / cover;
+    margin-left:10px;
+}
+.alarm__settings__buttons {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:absolute;
+    bottom:7%;
+    left:23.5%;
+    width:53%;
+    height:64px;
+    z-index:2;
+}
+.alarm__settings__button {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:48px;
+    height:48px;
+}
+.alarm__settings__button__success:after {
+    content:"";
+    display:block;
+    width:48px;
+    height:48px;
+    background:url(/public/images/checkbox_white.svg) no-repeat 0 0 / cover;
+}
+.alarm__settings__button__cancel:after {
+    content:"";
+    display:block;
+    width:48px;
+    height:2px;
+    background:#fff;
+}
+.alarm__settings__buttons__left {
+    position:absolute;
+    top:7.5px;
+    left:0;
+    z-index:3;
+}
+.alarm__settings__buttons__left__btn {
+    @include flex("row", "center", "center");
+    padding:7.5px 20px;
+    opacity:0.3;
+}
+.alarm__settings__button__options:after {
+    content:"";
+    display:block;
+    width:30px;
+    height:30px;
+    background:url(/public/images/time_white5.svg) no-repeat 0 0 / cover;
+}
+.alarm__settings__button__phone {
+    margin-left:-1px;
+}
+.alarm__settings__button__phone:after {
+    content:"";
+    display:block;
+    width:32px;
+    height:32px;
+    background:url(/public/images/phone_white.svg) no-repeat 0 0 / cover;
+}
+.alarm__settings__buttons__left__btn--active {
+    opacity:1;
+}
+.alarm__settings__phone {
+    @include abs();
+    @include flex("column", "center", "center");
+    padding-bottom:8%;
+    transform:translate3d(0, 101%, 0);
+}
+.alarm__settings__phone__text {
+    font-size:35px;
+    line-height:35px;
+}
+.alarm__settings__phone__name {
+    color:#fff;
+    font-family:$pragmatica;
+    font-size:24px;
+    line-height:24px;
+    margin-top:10px;
+}
+.alarm__settings__phone__button {
+    @include flex("row", "center", "center");
+    position:relative;
+    width:78px;
+    height:78px;
+    border:1px solid $azure_light;
+    border-radius:50%;
+    margin-top:50px;
+    background:rgba($azure_light,.2);
+}
+.alarm__settings__phone__button:before {
+    content:"";
+    position:absolute;
+    top:-25%;
+    left:-25%;
+    width:150%;
+    height:150%;
+    border:1px solid rgba($azure_light,.5);
+    border-radius:50%;
+}
+.alarm__settings__phone__button:after {
+    content:"";
+    display:block;
+    width:44px;
+    height:44px;
+    background:url(/public/images/phone_white2.svg) no-repeat 0 0 / cover;
+}
+.alarm__settings__phone__button__text {
+    position:absolute;
+    top:0;
+    left:100%;
+    color:#fff;
+    font-family:$pragmatica;
+    font-size:16px;
+    line-height:22px;
+    font-weight:300;
+    border-bottom:1px solid rgba($azure_light,.3);
+    transform:translate3d(25px, -20px, 0);
+
+    &:before {
+        content:"";
+        position:absolute;
+        top:100%;
+        right:100%;
+        width:15px;
+        height:1px;
+        background:rgba($azure_light,.3);
+        transform:rotate(-45deg) translate3d(-2px, 5px, 0);
+    }
+}
+.alarm__settings--phone {
+    .alarm__settings__phone {
+        transform:translate3d(0, 0, 0);
+    }
+    .alarm__settings__date__select,
+    .alarm__settings__date,
+    .alarm__settings__time {
+        opacity:0;
+    }
+}
+.alarm__settings--dateSelect {
+    .alarm__settings__date__text:after {
+        transform:rotate(180deg);
+    }
+    .alarm__settings__date {
+        transform:translate3d(0, 0, 0);
+    }
+    .alarm__settings__time {
+        opacity:0;
+    }
+}
+.alarm__settings--off {
+    &:after {
+        content:"";
+        @include abs();
+        background:rgba($black_light,.5);
+        z-index:1;
+    }
+    .alarm__settings__date,
+    .alarm__settings__phone {
+        display:none;
+    }
+    .alarm__settings__date__select,
+    .alarm__settings__time,
+    .alarm__settings__buttons__left {
+        opacity:.15;
+    }
+    .alarm__settings__switch:after {
+        background-image:url(/public/images/alarm_white.svg);
+    }
+}
+
+@media screen and (max-width:320px){
+    .alarm__settings__switch:after {
+        width:22px;
+        height:22px;
+        margin-left:8px;
+    }
+    .alarm__settings__date__select {
+        top:5%;
+        font-size:24px;
+    }
+    .alarm__settings__date__text:after {
+        top:-6px;
+    }
+    .alarm__settings__weekday {
+        font-size:24px;
+        line-height:24px;
+        margin-top:2px;
+    }
+    #alarm__settings__iscroll__hours,
+    #alarm__settings__iscroll__minutes,
+    .alarm__settings__time__item {
+        height:64px;
+    }
+    .alarm__settings__time__item {
+        font-size:48px;
+        line-height:64px;
+    }
+    .alarm__settings__date__item {
+        font-size:30px;
+        line-height:48px;
+    }
+    .alarm__settings__time__dots {
+        font-size:48px;
+        line-height:56px;
+    }
+    .alarm__settings__time,
+    .alarm__settings__date__container {
+        height:192px;
+    }
+    .alarm__settings__date__container {
+        top:-7%;
+    }
+    .alarm__settings__date__now {
+        font-size:21px;
+        line-height:23px;
+        bottom:10%;
+    }
+    .alarm__settings__buttons__left__btn {
+        padding-left:18px;
+    }
+    .alarm__settings__buttons {
+        bottom:20px;
+    }
+    .alarm__settings__phone__text {
+        font-size:30px;
+        line-height:30px;
+    }
+    .alarm__settings__phone__button {
+        margin-top:40px;
+    }
+}

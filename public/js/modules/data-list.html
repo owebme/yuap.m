@@ -1,0 +1,200 @@
+<data-list class="section__wrapper">
+
+    <div class="section__container section__container__data__list">
+        <div each={item in data.get('items')} no-reorder class="data__list__item data__list__status--{ getStatusColor(item.status) } { data__list__item--new : item.new } { data__list__item--checked : item.checked } { data__list__item--important : item.important } { data__list__item--remove : item.remove } { data__list__item--animation : item.animation }">
+            <div if={ item.alarm } class="data__list__alarm"></div>
+            <div class="data__list__date">{ getDate(item.date) }</div>
+            <div onclickDelegateUpdate={ onChecked } class="data__list__photo">
+                <div if={ item.type !== "profile" } class="data__list__photo__item data__list__icon data__list__icon--{ item.type }"></div>
+                <div if={ item.type === "profile" } class="data__list__photo__item">
+                    <div class="data__list__photo__image" style="background-image:url({ item.image })"></div>
+                </div>
+            </div>
+            <div class="data__list__textarea">
+                <div class="data__list__title">
+                    <span class="data__list__name">
+                        <virtual if={ item.type === "order" }>#заявка,</virtual>
+                        <virtual if={ item.type === "chat" }>#онлайн-чат,</virtual>
+                        <virtual if={ item.type === "callback" }>#звонок,</virtual>
+                        <virtual if={ item.type === "feedback" }>#письмо,</virtual>
+                        <virtual if={ item.type === "profile" }>#профиль,</virtual>
+                    </span>
+                    { item.title }
+                </div>
+                <div class="data__list__text">
+                    <virtual if={ item.type !== "callback" }>{ item.text }</virtual>
+                    <span if={ item.type === "callback" } class="data__list__strong">{ item.text }</span>
+                </div>
+            </div>
+            <div onclickDelegate={ selectStatus } class="data__list__options"><div class="data__list__options__item"></div></div>
+        </div>
+    </div>
+    <div onclickDelegate={ openChat } class="chat__circle__button">
+        <div class="chat__circle__button__messages chat__circle__button__messages--active">4</div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $popupSelect = $root.tags["popup-select"];
+
+    //$api.addStore(new app.stores.data());
+
+    $.data = new Baobab({
+        items: [],
+        status: [],
+        isChecked: Baobab.monkey(
+            ['items'],
+            function(data) {
+              return data.filter(function(item) {
+                return item.checked === true;
+              });
+            }
+        ),
+        isCheckedIds: function(){
+            return _.pluck($.data.get('isChecked'), "_id");
+        }
+    },
+    {
+        autoCommit: false,
+        asynchronous: true,
+        immutable: false,
+        lazyMonkeys: false,
+        persistent: false,
+        pure: true
+    });
+
+    this.on("mount", function(){
+        //setInterval(function(){
+            //console.time("data/list/init");
+            $fetch('data/list/init', "get").then(function(data){
+                $.data.set('items', data.list);
+                $.data.set('status', data.status);
+                $.update();
+                //console.timeEnd("data/list/init");
+                $.iScrollList.refresh();
+            });
+        //}, 1000);
+
+        // setTimeout(function(){
+        //     $fetch('data/list/update', "get").then(function(data){
+        //         $.data.concat('items', data);
+        //         $.update();
+        //         //console.timeEnd("data/list/init");
+        //         $.iScrollList.refresh();
+        //     });
+        // }, 1000);
+
+        $.panel = $.parent.tags["data-header"];
+
+        // $.data.forEach(function(item, i){
+        //     $.data[i].animation = true;
+        // });
+        //
+        // $.update();
+
+        $.iScrollList = new IScroll($scope[0], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            var scroll = app.utils.getScroll($.iScrollList);
+
+            if (!$.panel.show){
+                if (scroll.y < -80){
+                    $.panel.loader();
+                }
+                else if (scroll.y > 0 && (scroll.maxY - scroll.y) < 40){
+                    //$.panel.loader();
+                }
+            }
+        })();
+
+        app.iScrollDataList = $.iScrollList;
+    });
+
+    $.getDate = function(date){
+        var days = tempus().between(tempus(date), 'day');
+        if (days > 0) return tempus(date).format('%H:%M');
+        else if (days === -1) return "вчера";
+        else {
+            return tempus(date).format('%d %b');
+        }
+    };
+
+    $.getStatusColor = function(id){
+        return $.data.get('status', {'_id': id}, 'color');
+    };
+
+    $.onChecked = function(){
+        if (this.item.checked) {
+            this.item.checked = false;
+            $.data.select('items', {'_id': this.item._id}).set("checked", false);
+        }
+        else {
+            this.item.checked = true;
+            $.data.select('items', {'_id': this.item._id}).set("checked", true);
+        }
+
+        var counts = $.data.get('isChecked').length;
+
+        if (counts) $.panel.show = true;
+        else $.panel.show = false;
+
+        $.panel.counts = counts;
+        $.panel.update();
+    };
+
+    $.unChecked = function(){
+        $.data.get('isChecked', function(item) {
+            item.checked = false;
+        });
+        $.update();
+    };
+
+    $.selectStatus = function(){
+        var _this = this,
+            id = this.item._id;
+
+        $popupSelect.show({
+            type: "status",
+            icon: {
+                type: this.item.type,
+                image: this.item.image
+            },
+            data: $.data.get('status'),
+            value: this.item.status,
+            callback: function(value){
+                $.data.select('items', {'_id': id}).set("status", value);
+                _this.update();
+            }
+        });
+    };
+
+    $.openChat = function(){
+        app.sections.nav("chat");
+    };
+
+    // console.time("getDataList");
+    // fetch('http://localhost:8080/api/data/list/' + $sid, {mode: 'cors'})
+    // .then(function(response) {
+    //     if (response.status !== 200) {
+    //         console.log('Looks like there was a problem. Status Code: ' + response.status);
+    //         return;
+    //     }
+    //     response.json().then(function(data) {
+    //         console.timeEnd("getDataList");
+    //         $.data = data.result;
+    //         $.update();
+    //     });
+    // })
+    // .catch(function (error) {
+    //     console.log('Request failed', error);
+    // });
+
+</script>
+
+</data-list>

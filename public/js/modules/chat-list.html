@@ -1,0 +1,535 @@
+<chat-list-raw>
+  this.root.innerHTML = opts.content;
+</chat-list-raw>
+
+<chat-list data-marquee="chat" class="section section__marquee">
+
+    <div class="section section__primary chat__list">
+        <header>
+            <div class="header__title">iMessenger</div>
+            <div class="header__left">
+                <div class="chat__list__close header__icon header__icon__back"></div>
+            </div>
+            <div class="header__right">
+                <div class="chat__list__header__photo header__icon header__icon__avatar">
+                    <div if={ lastClient.avatar } class="header__icon__avatar__container">
+                        <div style="background-image:url({ lastClient.avatar })" class="header__icon__avatar__image"></div>
+                    </div>
+                    <div if={ lastClient.id } class="header__icon__avatar__status { lastClient.online ? 'header__icon__avatar__status--online' : 'header__icon__avatar__status--offline' }"></div>
+                </div>
+            </div>
+        </header>
+        <div id="chat__list__scroll" class="section__wrapper">
+            <div class="chat__list__container section__container">
+                <div onclickDelegate={ openRoom } each={user in users} no-reorder class="chat__list__item">
+                    <div class="chat__list__photo { chat__list__photo--avatar : user.avatar }">
+                        <div if={ user.avatar } style="background-image:url({ user.avatar })" class="chat__list__avatar"></div>
+                    </div>
+                    <div class="chat__list__status { user.online ? 'chat__list__status--online' : 'chat__list__status--offline' }"></div>
+                    <div class="chat__list__text">
+                        <div class="chat__list__time">{ user.joinTime }</div>
+                        <div class="chat__list__counts { chat__list__counts--active : user.newMessages }">{ user.newMessages }</div>
+                        <div class="chat__list__title">{ user.name ? user.name : 'Гость'}</div>
+                        <div class="chat__list__message">{ user.lastMessage ? user.lastMessage : 'С вами хотят пообщаться'}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div if={ !users.length } class="chat__list__empty"><span class="chat__list__empty__text">Сейчас нет активных чатов</span></div>
+    </div>
+    <div class="section chat__body">
+        <div each={user in users} no-reorder id="chat__room__{ user.id }" class="section section__secondary">
+            <header>
+                <div class="header__title header__title__chat__room">{ user.name ? user.name : 'Гость'}</div>
+                <div class="header__left">
+                    <div class="chat__room__close header__icon header__icon__back"></div>
+                </div>
+                <div class="header__right">
+                    <div class="chat__header__photo header__icon header__icon__avatar">
+                        <div if={ user.avatar } class="header__icon__avatar__container">
+                            <div style="background-image:url({ user.avatar })" class="header__icon__avatar__image"></div>
+                        </div>
+                        <div if={ user.id } class="header__icon__avatar__status { user.online ? 'header__icon__avatar__status--online' : 'header__icon__avatar__status--offline' }"></div>
+                    </div>
+                </div>
+            </header>
+            <div id="chat__room__scroll__{ user.id }" class="section__wrapper">
+                <div class="section__container chat__room__container">
+                    <div each={message in user.messages} no-reorder class="chat__message { message.me ? 'chat__message__left' : 'chat__message__right' }">
+                        <div class="{ message.me ? 'chat__message__que' : 'chat__message__answer'} { chat__message__system : message.type !== 'chat' } { chat__message__system--active : message.type == 'auth' && user.auth || message.type == 'phone' && user.phone || message.type == 'email' && user.email } { chat__message__new : message.new } chat__message__inner">
+                            <chat-list-raw content="{ message.text }">{ message.text }</chat-list-raw>
+                            <div if={ message.type === 'auth' && !user.auth } class="chat__message__icon--auth"></div>
+                            <div if={ message.type === 'auth' && user.auth } class="chat__message__icon--checked"></div>
+                            <div if={ message.type === 'phone' } class="chat__message__icon--phone"></div>
+                            <div if={ message.type === 'email' } class="chat__message__icon--email"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat__panel">
+                <div class="chat__panel__info">
+                    <div class="chat__panel__info__typing { chat__panel__info__typing--active : client_id && client_id == typed_id }">Вам печатают сообщение...</div>
+                </div>
+                <div class="chat__panel__effect { chat__panel__effect--active : client_id && client_id == typed_id }">
+                    <div class="chat__panel__effect__bar"></div>
+                    <div class="chat__panel__effect__dots { chat__panel__effect__dots--active : client_id && client_id == typed_id }">
+                        <div class="chat__panel__effect__dot chat__panel__effect__dot1"></div>
+                        <div class="chat__panel__effect__dot chat__panel__effect__dot2"></div>
+                        <div class="chat__panel__effect__dot chat__panel__effect__dot3"></div>
+                    </div>
+                </div>
+                <form class="chat__panel__form">
+                    <div class="chat__panel__menu">
+                        <i class="chat__panel__menu__circle"></i>
+                        <select onchange={ changeOptions } name="chat__select__options" class="chat__select__options">
+                            <option value="1">Предложить представиться</option>
+                            <option value="2">Предложить оставить телефон</option>
+                            <option value="3">Предложить оставить email</option>
+                            <option value="4">Прикрепить картинку</option>
+                        </select>
+                    </div>
+                    <input onclickDelegate={ focusInput } type="text" name="chat__panel__input" class="chat__panel__input" placeholder="Набрать сообщение..." autocomplete="off">
+                    <div onclickDelegate={ sendMessage } class="chat__panel__button"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div each={user in users} no-reorder id="chat__metrika__{ user.id }" class="section section__right section__right__not__fully section__header__without">
+        <div class="chat__metrika__close"></div>
+        <div id="chat__metrika__wrapper__{ user.id }" class="section__wrapper section__wrapper__metrika">
+            <div class="section__container">
+                <div class="chat__metrika__header">
+                    <div class="chat__metrika__time">{ user.joinTime }</div>
+                    <div class="chat__metrika__photo { user.online ? 'chat__metrika__photo--online' : 'chat__metrika__photo--offline' }">
+                        <div if={ user.avatar } class="chat__metrika__avatar" style="background-image:url({ user.avatar })"></div>
+                    </div>
+                    <div if={ user.profile.bdate } class="chat__metrika__bdate">{ user.profile.bdate }</div>
+                    <div class="chat__metrika__title">{ user.name ? user.name : 'Гость'}</div>
+                </div>
+                <div class="chat__metrika__content">
+                    <div if={ user.phone } class="chat__metrika__tile">
+                        <div class="chat__metrika__tile__title">Телефон: <span class="chat__metrika__text__blue">{ user.phone }</span></div>
+                    </div>
+                    <div class="chat__metrika__tile">
+                        <div class="chat__metrika__tile__subtitle">По данным счетчика</div>
+                        <div class="chat__metrika__tile__text">{ user.metrika.visit }-й раз на сайте, { user.metrika.city }</div>
+                    </div>
+                    <div if={ user.metrika.start } class="chat__metrika__tile">
+                        <div class="chat__metrika__tile__subtitle">Страница входа</div>
+                        <div class="chat__metrika__tile__text"><a class="chat__metrika__link" href="{ user.metrika.start }" target="_blank">{ user.metrika.start }</a></div>
+                    </div>
+                    <div class="chat__metrika__tile">
+                        <div class="chat__metrika__tile__subtitle">На сайт перешли { user.metrika.adv ? 'по рекламе' : 'с' }</div>
+                        <div class="chat__metrika__tile__text">
+                            { "Яндекс.Директ" : user.metrika.adv && user.metrika.referer === "yandex" }
+                            { "Яндекс.Поиск" : !user.metrika.adv && user.metrika.referer === "yandex" }
+                            { "Google.Adwords" : user.metrika.adv && user.metrika.referer === "google" }
+                            { "Google.Поиск" : !user.metrika.adv && user.metrika.referer === "google" }
+                            { "Rambler.Поиск" : user.metrika.referer === "rambler" }
+                            { "Yahoo.Поиск" : user.metrika.referer === "yahoo" }
+                            { "Bing.Поиск" : user.metrika.referer === "bing" }
+                            { "Mail.ru.Поиск" : user.metrika.referer === "mail" }
+                            <virtual if={ user.metrika.referer && user.metrika.referer.match(/http/) }>
+                                { user.metrika.referer }
+                            </virtual>
+                            <virtual if={ user.metrika.keyword }>, { user.metrika.keyword }</virtual>
+                        </div>
+                    </div>
+                    <div if={ user.metrika.pages } class="chat__metrika__tile">
+                        <div class="chat__metrika__tile__title">Посещено: { user.metrika.pages } страниц(ы)</div>
+                        <div class="chat__metrika__pages__container">
+                            <div each={link in user.metrika.pagesData} no-reorder class="chat__metrika__tile">
+                                <a class="chat__metrika__link" target="_blank" href="{ link }">{ link }</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <svg style="position:absolute" xmlns="http://www.w3.org/2000/svg" version="1.1">
+      <defs>
+        <filter id="goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+          <feComposite in="SourceGraphic" in2="goo" />
+        </filter>
+      </defs>
+    </svg>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root);
+
+    $.sid = 777;
+    $.users = [];
+    $.activity = false;
+    $.ready = false;
+    $.socket_id = null;
+    $.user_id = sessionStorage.chat_uid || new Date().getTime() + (Math.round(Math.random() * 10000));
+    $.lastClient = sessionStorage.chat_client && JSON.parse(sessionStorage.chat_client) || {};
+    $.client_id = null;
+    $.timeOutTyped = null;
+    $.typed_id = null;
+    $.iScrollList = null;
+    $.iScrollRoom = {};
+    $.iScrollMetrika = {};
+    $.socket = io.connect('http://5.101.124.21:8008', {
+		reconnection: false
+	});
+    $.reconnectInterval = null;
+
+    if (!sessionStorage.chat_uid) sessionStorage.chat_uid = $.user_id;
+
+    this.on("mount", function(){
+
+        setTimeout(function(){
+            if (!$.socket.connected){
+                $.reconnect();
+                console.log('Chat: невозможно подключиться к серверу!');
+            }
+        }, 1000);
+
+        //console.dir($.socket);
+
+        // $.socket.on('connecting', function(){
+        //     console.log('connecting');
+        // });
+
+        $.socket.on('connect', function(){
+            console.log('Chat: соединение установленно!');
+            clearInterval($.reconnectInterval);
+            $.reconnectInterval = null;
+            $.ready = true;
+            $.socket_id = this.id;
+            $.socket.emit("join", {
+                id: $.user_id,
+                sid: $.sid,
+                admin: true
+            });
+        });
+
+        var $chat_list = $$($scope.children()[0]),
+            $chat_body = $$($scope.children()[1]);
+
+        // exit chat-list
+        $scope.find(".chat__list__close").on(clickEvent, function(){
+            app.sections.nav("data-list");
+            app.iScrollDataList.refresh();
+        });
+
+        // open chat-room
+        $.openRoom = function(e){
+            var $elem = $$(e.currentTarget),
+                id = this._item.user.id;
+
+            var $room = $$($["chat__room__" + id]);
+
+            try {
+                $elem.addClass("chat__list__item--active").siblings().removeClass("chat__list__item--active");
+            } catch(e){}
+            $room.addClass("section--show");
+            $chat_list.addClass("section--hidden");
+
+            $.client_id = id;
+            $.scrollDown();
+
+            app.utils.onEndAnimation($["chat__room__" + id], function(){
+                $.activity = true;
+                $room.addClass("section--active").removeClass("section--show");
+                $.users.forEach(function(item, i) {
+                    if ($.lastClient && $.lastClient.id !== id || !$.lastClient && item.id == id){
+                        $.lastClient = {
+                            id: item.id,
+                            avatar: item.avatar,
+                            online: item.online
+                        };
+                        sessionStorage.chat_client = JSON.stringify($.lastClient);
+                        $.update();
+                    }
+                });
+                $.viewedList();
+            });
+        };
+
+        // close chat-room
+        $chat_body.on(clickEvent, ".chat__room__close", function(){
+
+            var $room = $$($["chat__room__" + $.client_id]);
+
+            $room.addClass("section--hidden");
+            $chat_list.removeClass("section--hidden");
+
+            app.utils.onEndAnimation($["chat__room__" + $.client_id], function(){
+                $.client_id = null;
+                $.activity = false;
+                $room.removeClass("section--active").removeClass("section--hidden");
+                $.update();
+            });
+        });
+
+        // show metrika in chat-list
+        $scope.find(".chat__list__header__photo").on(clickEvent, function(){
+            if ($.lastClient && $.lastClient.id) {
+                var $metrika = $$($["chat__metrika__" + $.lastClient.id]);
+                $metrika.addClass("section--show");
+            }
+        });
+
+        // show metrika in chat-room
+        $chat_body.on(clickEvent, ".chat__header__photo", function(){
+            if ($.client_id) {
+                var $metrika = $$($["chat__metrika__" + $.client_id]);
+                $metrika.addClass("section--show");
+            }
+        });
+
+        // close metrika user
+        $scope.on(clickEvent, ".chat__metrika__close", function(){
+            if ($.lastClient && $.lastClient.id) {
+                var $metrika = $$($["chat__metrika__" + $.lastClient.id]);
+                $metrika.removeClass("section--show");
+            }
+        });
+    });
+
+    $.socket.on("update_" + $.sid, function(data){
+        if ($.ready) {
+            // data.forEach(function(item, i) {
+            //     var length = data[i].messages.length;
+            //     if (length > 30){
+            //         var limit = length - 30;
+            //         data[i].messages.forEach(function(message, j) {
+            //             if (j < limit) message.hidden = true;
+            //         });
+            //     }
+            // });
+            $.users = data;
+            $.typed_id = null;
+            if ($.activity){
+                $.users.forEach(function(item, i) {
+                    if (item.id == $.client_id){
+                        var j = item.messages.length - 1;
+                        $.users[i].messages[j].new = true;
+                    }
+                });
+            }
+            $.update();
+             if ($.client_id){
+                if (!$.users.length){
+                    $.client_id = null;
+                    $.lastClient = null;
+                    sessionStorage.chat_client = null;
+                    $.update();
+                }
+                else {
+                    $.iScrollRoom[$.client_id].refresh();
+                    $.iScrollRoom[$.client_id].scrollTo(0, $.iScrollRoom[$.client_id].maxScrollY, 400, IScroll.utils.ease.cubicOut);
+                }
+
+            }
+            // Обновление списка подключений (проверка отключившихся)
+            else if (!$.client_id){
+                if ($.users.length && $.lastClient) {
+                    var avail = false;
+                    $.users.forEach(function(item, i) {
+                        if ($.lastClient.id === item.id) avail = true;
+                    });
+                    if (!avail){
+                        $.lastClient = null;
+                        sessionStorage.chat_client = null;
+                        $.update();
+                    }
+                }
+                else {
+                    $.lastClient = null;
+                    sessionStorage.chat_client = null;
+                    $.update();
+                }
+            }
+            $.scrollContent($.users);
+            clearTimeout($.timeOutTyped);
+            if ($.activity){
+                app.utils.onEndAnimation($["chat__room__" + $.client_id].querySelector(".chat__message__new"), function(){
+                    setTimeout(function(){
+                        $.users.forEach(function(item, i) {
+                            if (item.id == $.client_id){
+                                var j = item.messages.length - 1;
+                                $.users[i].messages[j].new = false;
+                            }
+                        });
+                        $.update();
+                    }, 300);
+                });
+            }
+        }
+    });
+
+    $.socket.on("notify_" + $.sid, function(id){
+        if ($.activity && $.client_id === id){
+            $.viewedList();
+        }
+    });
+
+    $.socket.on("update_offer" + $.sid, function(type){
+        $.tags["chat-list-raw"].forEach(function(item, i) {
+            if (item.message.type === type || item.message.type === "auth" && (type === "name" || type === "profile")){
+                var text = item.message.text;
+                item.root.innerHTML = text;
+            }
+        });
+    });
+
+    $.socket.on("typed_" + $.sid, function(id){
+        if ($.ready && $.client_id === id) {
+            clearTimeout($.timeOutTyped);
+            $.typed_id = id;
+            $.update();
+            $.timeOutTyped = setTimeout(function(){
+                $.typed_id = null;
+                $.update();
+            }, 5000);
+        }
+    });
+
+    $.socket.on('disconnect', function() {
+        $.reconnect();
+        console.log('Chat: соединение потеряно!');
+        $.users = [];
+        $.update();
+    });
+
+    $.reconnect = function(){
+        if ($.reconnectInterval) return;
+        $.reconnectInterval = setInterval(function(){
+            $.socket.connect();
+        }, 500);
+        console.log('Chat: запуск реконнекта!');
+    };
+
+    $.scrollContent = function(users){
+        if (!$.iScrollList){
+            $.iScrollList = new IScroll($["chat__list__scroll"], {
+                scrollX: false,
+                scrollY: true,
+                mouseWheel: true
+            });
+        }
+        users.forEach(function(item, i) {
+            if (!$.iScrollRoom[item.id]){
+                $.iScrollRoom[item.id] = new IScroll($["chat__room__scroll__" + item.id], {
+            		scrollX: false,
+            		scrollY: true,
+                    mouseWheel: true
+            	});
+                $.iScrollRoom[item.id].scrollTo(0, $.iScrollRoom[item.id].maxScrollY);
+
+                $.iScrollMetrika[item.id] = new IScroll($["chat__metrika__wrapper__" + item.id], {
+            		scrollX: false,
+            		scrollY: true,
+                    mouseWheel: true
+            	});
+
+                (function animationLoopRoom(){
+            		app.utils.raf(animationLoopRoom);
+            		app.utils.getScroll($.iScrollRoom[item.id]);
+            	})();
+
+                (function animationLoopMetrika(){
+            		app.utils.raf(animationLoopMetrika);
+            		app.utils.getScroll($.iScrollMetrika[item.id]);
+            	})();
+
+                $["chat__room__scroll__" + item.id].addEventListener("touchstart", function(e){
+                    $["chat__room__" + item.id].querySelector(".chat__panel__input").blur();
+                });
+            }
+        });
+    };
+
+    $.scrollDown = function(slow){
+        if (!$.client_id || !$.iScrollRoom[$.client_id]) return;
+        $.iScrollRoom[$.client_id].refresh();
+        $.iScrollRoom[$.client_id].scrollTo(0, $.iScrollRoom[$.client_id].maxScrollY);
+    };
+
+    $.focusInput = function(){
+        setTimeout(function(){
+            $.socket.emit("typed", $.client_id);
+        }, app.device.isMobile ? 400 : 0);
+    };
+
+    $.sendMessage = function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var text = this.chat__panel__input.value;
+        if (text.length){
+            this.chat__panel__input.value = "";
+            this.chat__panel__input.blur();
+
+            setTimeout(function(){
+                $.socket.emit("send", {
+                    id: $.client_id,
+                    message: text
+                });
+            }, app.device.isMobile ? 400 : 0);
+        }
+    };
+
+    $.changeOptions = function(e){
+        var value = e.target.value;
+        if (value === "1"){
+            $.socket.emit("send", {
+                id: $.client_id,
+                type: "auth",
+                message: "Предложение представиться"
+            });
+        }
+        else if (value === "2"){
+            $.socket.emit("send", {
+                id: $.client_id,
+                type: "phone",
+                message: "Предложение оставить телефон"
+            });
+        }
+        else if (value === "3"){
+            $.socket.emit("send", {
+                id: $.client_id,
+                type: "email",
+                message: "Предложение оставить email"
+            });
+        }
+    };
+
+    $.viewedList = function(){
+        var avail = false;
+        $.users.forEach(function(item, i) {
+            if (item.id === $.client_id && $.users[i].newMessages > 0) {
+                $.users[i].newMessages = 0;
+                $.users[i].messages.forEach(function(message, j) {
+                    message.viewed = true;
+                });
+                $.socket.emit("viewed", i);
+                avail = true;
+            }
+        });
+        if (avail) $.update();
+    };
+
+    // $.throttle = function(fn, delay) {
+    //     var allowSample = true;
+    //
+    //     return function(e) {
+    //         if (allowSample) {
+    //             allowSample = false;
+    //             setTimeout(function() { allowSample = true; }, delay);
+    //             fn(e);
+    //         }
+    //     };
+    // };
+
+</script>
+
+</chat-list>

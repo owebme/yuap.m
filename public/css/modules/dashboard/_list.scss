@@ -1,0 +1,147 @@
+#dashboard__scroll {
+    // background-image:linear-gradient(45deg, #5356ad, $violet);
+    // background-image:linear-gradient(45deg, #6a67ce, $violet);
+    // background-image:linear-gradient(45deg, #7f62d6, $violet);
+    // background:url(/public/images/dashboard3.png) no-repeat center top / cover;
+    // background:#ebecf0;
+    // background:#e8edf0;
+    // background:#eff3f5;
+    background:#f0f1f4;
+    color:$black_dark;
+    font-family:$pragmatica;
+}
+.section__container__dashboard {
+    @include flex("column", "flex-start", "center");
+    padding-bottom:20px;
+}
+.header__dashboard {
+    margin-bottom:5px;
+    // background:linear-gradient(310deg, rgba(lighten(#4e4990, 5%),1), rgba(darken(#4e4990, 5%),.7));
+    background:$blue_bright;
+    // background:#7781ff;
+    box-shadow:0 0 7px -3px $black2;
+    border:none;
+    height:55px;
+    color:#fff;
+
+    .header__title {
+        color:#fff;
+        line-height:53px;
+    }
+}
+.dashboard__openMenu {
+    margin:-3px 0 0 10px;
+}
+.dashboard__next__section {
+    margin-top:-2px;
+}
+.dashboard__tile {
+    position:relative;
+    @include flex("row", "flex-start", "center");
+    width:calc(100% - 26px);
+    height:128px;
+    margin-top:10px;
+    background:#fff;
+    padding:15px 18px;
+    border-radius:6px;
+    overflow:hidden;
+    box-shadow:0 1px 2px rgba(6, 33, 63, 0.13);
+}
+.dashboard__circle {
+    width:124px;
+    height:124px;
+    margin:-20px -3px -15px -18px;
+}
+.dashboard__title {
+    font-size:23px;
+    font-weight:300;
+}
+.dashboard__subtitle {
+    font-size:17px;
+    font-weight:300;
+    padding-top:2px;
+}
+.dashboard__balance {
+    color:$black_dark;
+    font-family:$roboto;
+    font-size:30px;
+    line-height:38px;
+    font-weight:500;
+}
+.dashboard__balance__rub {
+    position:relative;
+
+    &:after {
+        content:"=";
+        position:absolute;
+        bottom:-5px;
+        right:7px;
+        font-size:28px;
+        font-weight:400;
+    }
+}
+.dashboard__weather__canvas {
+    width:164px;
+    margin:3px 0 0 -30px;
+    opacity:0.95;
+}
+.dashboard__weather {
+    @include flex("column", "center", "flex-start");
+    font-size:17px;
+    line-height:26px;
+    white-space:nowrap;
+}
+.dashboard__weather__temp {
+    font-family:$roboto;
+    font-size:35px;
+    line-height:35px;
+    font-weight:500;
+    margin:0 0 2px -15px;
+}
+.dashboard__weather__temp:after {
+    display:inline-block;
+    content:'\00a0°C';
+    color:rgba(#fff,.75);
+    font-family:$pragmatica;
+    font-weight:400;
+}
+.dashboard__tile__label,
+.dashboard__weather__text {
+    font-weight:300;
+}
+.dashboard__tile__label {
+    position:absolute;
+    top:6px;
+    right:12px;
+    font-size:15px;
+    color:rgba($black_dark,.85);
+    text-transform:lowercase;
+}
+.dashboard__currency {
+    @include flex("row", "center", "center");
+    width:50%;
+    font-family:$roboto;
+    font-size:31px;
+    line-height:30px;
+    font-weight:500;
+    padding-bottom:5px;
+}
+.dashboard__currency__title {
+    font-family:$pragmatica;
+    font-size:40px;
+    font-weight:400;
+    padding-right:10px;
+    color:$blue_light2;
+}
+
+@media screen and (max-width:320px){
+    .dashboard__tile {
+        width:calc(100% - 12px);
+        height:128px;
+        margin-top:6px;
+        border-radius:7px;
+    }
+    .dashboard__circle {
+        margin-left:-22px;
+    }
+}

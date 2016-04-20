@@ -1,0 +1,74 @@
+<dashboard-balance class="section section__secondary section__header__nofixed">
+
+    <div id="dashboard__balance__scroll" class="section__wrapper">
+        <div class="section__container">
+            <header class="header__black">
+                <div class="header__title">Ваш баланс</div>
+                <div class="header__left">
+                    <div onclickDelegate={ onClose } class="alarm__list__close header__icon header__icon__back"></div>
+                </div>
+                <div class="header__right dashboard__balance__days">
+                    28 дн
+                </div>
+            </header>
+            <div class="dashboard__screen">
+                <div class="dashboard__balance__label">остаток</div>
+                <div id="dashboard__balance__big" class="dashboard__screen__circle"></div>
+            </div>
+            <div class="dashboard__balance__button">Пополнить баланс</div>
+            <div class="dashboard__table">
+                <div class="dashboard__table__row">
+                    <div class="c-gray">12 мар 2016</div>
+                    <div class="t-right"><strong>1 250,0 Р</strong></div>
+                </div>
+                <div class="dashboard__table__row">
+                    <div class="c-gray">7 мар 2016</div>
+                    <div class="t-right"><strong>3 480,0 Р</strong></div>
+                </div>
+                <div class="dashboard__table__row">
+                    <div class="c-gray">5 мар 2016</div>
+                    <div class="t-right"><strong>900,0 Р</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    // close section
+    $.onClose = function(e){
+        $dashboardList.closeSection("balance");
+    };
+
+    this.on("mount", function(){
+
+        $scope.find("#dashboard__balance__big").circliful({
+            foregroundColor: "#68f5ff",
+            foregroundBorderWidth: 8.5,
+            backgroundBorderWidth: 8.5,
+            showPercent: false,
+            percent: 88,
+            textFamily: "roboto",
+            textSize: "25px",
+            target: "4 750,0"
+        });
+
+        $.iScrollList = new IScroll($["dashboard__balance__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+    });
+
+</script>
+
+</dashboard-balance>

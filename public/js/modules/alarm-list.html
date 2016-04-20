@@ -1,0 +1,343 @@
+<alarm-list id="alarm__list__scroll" class="section__wrapper section__wrapper__alarm">
+
+    <div class="section__container">
+        <header class="header__black">
+            <div class="header__title">iCalendar</div>
+            <div class="header__left">
+                <div class="alarm__list__close header__icon header__icon__back"></div>
+            </div>
+            <div class="header__right">
+                <div class="alarm__list__icon__add header__icon"></div>
+            </div>
+        </header>
+        <div each={item in data} no-reorder class="alarm__list__item alarm__list__item{ utils.getBetweenDay(item.date) } { alarm__list__item--off : !item.active }">
+            <div onclickDelegateUpdate={ switchAlarm } class="alarm__list__item__switch"></div>
+            <div onclickDelegate={ openAlarm } riot-item=".alarm__settings" riot-addClass="section--show" class="alarm__list__time"><span class="alarm__list__hour">{ utils.getHours(item.time) }</span>:{ utils.getMinutes(item.time) }</div>
+            <div onclickDelegate={ openPhone } riot-item=".alarm__settings" riot-addClass="section--show" class="alarm__list__text">
+                <div if={ item.phone } class="alarm__list__phone">{ item.phone }</div>
+                <div class="alarm__list__when"><strong class="alarm__list__strong">{ utils.getDate(item.date) }</strong><virtual if={ item.name }>, { item.name }</virtual></div>
+            </div>
+            <div class="alarm__list__days">
+                <div class="alarm__list__days__item { alarm__list__days__item--active : utils.dayOfWeek(item.date) === "Пн" }">Пн</div>
+                <div class="alarm__list__days__item { alarm__list__days__item--active : utils.dayOfWeek(item.date) === "Вт" }">Вт</div>
+                <div class="alarm__list__days__item { alarm__list__days__item--active : utils.dayOfWeek(item.date) === "Ср" }">Ср</div>
+                <div class="alarm__list__days__item { alarm__list__days__item--active : utils.dayOfWeek(item.date) === "Чт" }">Чт</div>
+                <div class="alarm__list__days__item { alarm__list__days__item--active : utils.dayOfWeek(item.date) === "Пт" }">Пт</div>
+                <div class="alarm__list__days__item { alarm__list__days__item--active : utils.dayOfWeek(item.date) === "Сб" }">Сб</div>
+                <div class="alarm__list__days__item { alarm__list__days__item--active : utils.dayOfWeek(item.date) === "Вс" }">Вс</div>
+            </div>
+            <div onclickDelegate={ removeAlarm } class="alarm__list__item__remove"></div>
+        </div>
+    </div>
+    <div if={ !data.length } class="section__wrapper__alarm__empty">
+        <div class="section__wrapper__alarm__empty__text">Сейчас нет активных напоминаний</div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $section = $$($.parent.root);
+
+    $.data = [
+        {
+            id: "1",
+            date: "2016-04-04",
+            time: "720",
+            phone: "89160172086",
+            name: "Ирина",
+            active: true
+        },
+        {
+            id: "2",
+            date: "2016-04-04",
+            time: "750",
+            phone: "89160172086",
+            name: "Ирина",
+            active: true
+        },
+        {
+            id: "3",
+            date: "2016-04-05",
+            time: "960",
+            phone: "89855216480",
+            name: "Ирина",
+            active: true
+        },
+        {
+            id: "4",
+            date: "2016-04-06",
+            time: "1020",
+            phone: "9264571727",
+            name: "Ирина",
+            active: true
+        },
+        {
+            id: "5",
+            date: "2016-04-07",
+            time: "1080",
+            phone: "9264571727",
+            name: "Ирина",
+            active: true
+        },
+        {
+            id: "6",
+            date: "2016-04-08",
+            time: "1080",
+            phone: "9264571727",
+            name: "Ирина",
+            active: true
+        },
+        {
+            id: "7",
+            date: "2016-04-09",
+            time: "1080",
+            phone: "9264571727",
+            name: "Ирина",
+            active: true
+        }
+    ];
+
+    $.data.forEach(function(item, i) {
+        $.data[i].date = tempus().calc({day: i}).format('%Y-%m-%d');
+    });
+
+    $.utils = {
+
+        getBetweenDay: function(date){
+            var days = tempus(date).between(tempus(), 'day');
+            if (days < 1 && days > -7) days = Math.abs(days) + 1;
+            else if (days < -6) days = 7;
+            else days = 0;
+            return days;
+        },
+
+        getDate: function(date){
+            var between = tempus(date).between(tempus(), 'day');
+            if (between === 0) return "сегодня";
+            else if (between === -1) return "завтра";
+            else {
+                return tempus(date).format('%d, %b');
+            }
+        },
+
+        getHours: function(time){
+            return Math.floor(time / 60);
+        },
+
+        getMinutes: function(time){
+            var min = time - Math.floor(time / 60) * 60;
+            return min < 10 ? "0" + min : min;
+        },
+
+        dayOfWeek: function(date){
+            return tempus(date).dayOfWeek("short");
+        }
+    };
+
+    // change list alarm ON/OFF
+    $.switchAlarm = function(){
+        if (this.item.active) this.item.active = false;
+        else this.item.active = true;
+    };
+
+    // open alarm settings
+    $.openAlarm = function(){
+        $.settings.alarmShow({
+            alarm: this.item,
+            section: "time"
+        });
+    };
+
+    // open phone settings
+    $.openPhone = function(){
+        $.settings.alarmShow({
+            alarm: this.item,
+            section: "phone"
+        });
+    };
+
+    // remove alarm settings
+    $.removeAlarm = function(e){
+        var _this = this,
+            id = this.item.id,
+            $item = $$(e.target.parentNode);
+
+        $item.addClass("alarm__list__item--remove");
+        app.utils.onEndAnimation($item[0], function(){
+            $item[0].style[prefixed.transform] = "";
+            $item[0].show = false;
+            $.data.forEach(function(item, i) {
+                if (item.id === id) $.data.splice(i, 1);
+            });
+            _this.update();
+            $.iScrollAlarmList.refresh();
+        });
+    };
+
+    this.on("mount", function(){
+
+        $.settings = $.parent.tags["alarm-settings"];
+
+        // close iCalendar
+        $scope.find(".header__icon__back").on(clickEvent, function(){
+            $section.removeClass("section--show");
+        });
+
+        $.iScrollAlarmList = new IScroll($scope[0], {
+            scrollX: true,
+            scrollY: true
+        });
+
+        (function animationAlarmLoop(){
+            app.utils.raf(animationAlarmLoop);
+            app.utils.getScroll($.iScrollAlarmList);
+        })();
+
+        var slideItem = function(elem, item){
+            this.el = $$(elem);
+            this.items = item;
+            this.touchStart();
+            this.touchMove();
+            this.touchEnd();
+        };
+
+        slideItem.prototype = {
+
+            isAnimating: false,
+
+            startTime: null,
+
+            firstTouch: {
+                x: null,
+                y: null
+            },
+
+            touchDelta: {
+                x: null,
+                y: null
+            },
+
+            touchStart: function(){
+                var _this = this;
+
+                this.el.on(app.device.isMobile ? "touchstart" : "mousedown", this.items, function(ev){
+                    ev.preventDefault();
+                    _this.isAnimating = false;
+                    _this.item = ev.currentTarget;
+                    _this.startTime = _this.getTime();
+                    if (app.device.isMobile){
+            		    _this.firstTouch = {
+                            x: parseInt(ev.changedTouches[0].clientX),
+                            y: parseInt(ev.changedTouches[0].clientY)
+                        }
+                    }
+                    else {
+                        _this.firstTouch = {
+                            x: parseInt(ev.clientX),
+                            y: parseInt(ev.clientY)
+                        }
+                    }
+                });
+            },
+
+            touchMove: function() {
+                var _this = this;
+
+                this.el.on(app.device.isMobile ? "touchmove" : "mousemove", this.items, function(ev){
+                    ev.preventDefault();
+
+                    var moving = function(){
+
+                        if (app.device.isMobile){
+                            _this.touchDelta = {
+                                x: parseInt(ev.changedTouches[0].clientX) - _this.firstTouch.x,
+                                y: Math.abs(parseInt(ev.changedTouches[0].clientY) - _this.firstTouch.y)
+                            }
+                        }
+                        else {
+                            _this.touchDelta = {
+                                x: parseInt(ev.clientX) - _this.firstTouch.x,
+                                y: Math.abs(parseInt(ev.clientY) - _this.firstTouch.y)
+                            }
+                        }
+
+                        if (_this.touchDelta.x < 0) _this.direction = "left";
+                        else _this.direction = "right";
+
+                        var desTime = _this.getTime() - _this.startTime,
+                            show = _this.item && _this.item.show;
+
+                        if (desTime < 100 && !_this.isAnimating && !show || _this.touchDelta.y > 12 || !show && (_this.touchDelta.x > 0 || _this.touchDelta.x >= -10) || show && _this.touchDelta.x < 0) return;
+
+                        _this.isAnimating = true;
+
+                        if (show){
+                            _this.item.style[prefixed.transform] = 'translate3d(' + (_this.touchDelta.x - 150) + 'px, 0, 0)';
+                        }
+                        else {
+                            _this.item.style[prefixed.transform] = 'translate3d(' + (_this.touchDelta.x * 0.4) + 'px, 0, 0)';
+                        }
+                    }
+
+                    app.utils.raf(moving);
+                    moving();
+                });
+        	},
+
+            touchEnd: function() {
+                var _this = this;
+
+                this.el.on(app.device.isMobile ? "touchend" : "mouseup", this.items, function(ev){
+                    ev.preventDefault();
+                    if (!_this.item.show && _this.direction === 'left') {
+                        if (Math.abs(_this.touchDelta.x) > 75){
+                            _this.slide(true);
+                        }
+                        else {
+                            _this.slide(false);
+                        }
+                    }
+                    else if (_this.item.show && _this.direction === 'right') {
+                        if (Math.abs(_this.touchDelta.x) > 50){
+                            _this.slide(false);
+                        }
+                        else {
+                            _this.slide(true);
+                        }
+                    }
+                    _this.isAnimating = false;
+                });
+        	},
+
+            slide: function(show) {
+                var _this = this;
+
+                this.$item = $$(this.item);
+
+                this.$item.addClass("alarm__list__item--animate");
+
+                if (show) {
+                    this.item.style[prefixed.transform] = 'translate3d(-150px, 0, 0)';
+                    this.item.show = true;
+                }
+                else {
+                    this.item.style[prefixed.transform] = "";
+                    this.item.show = false;
+                }
+                app.utils.onEndTransition(this.item, function(){
+                    _this.$item.removeClass("alarm__list__item--animate");
+                });
+        	},
+
+            getTime: function(){
+                return new Date().getTime();
+            }
+        };
+
+        new slideItem($scope[0], ".alarm__list__item");
+    });
+
+</script>
+
+</alarm-list>

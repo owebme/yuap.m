@@ -1,0 +1,59 @@
+<data-menu class="data__menu { data__menu--active : active }">
+
+    <div onclickDelegateUpdateAll={ onSelect } each={ items } no-reorder class="data__menu__item { data__menu__item--active : name == value }">
+        <span class="data__menu__item__icon data__menu__item--{ name }">{ subtitle }</span>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $dataHeader = $.parent.tags["data-header"];
+
+    $.active = false;
+
+    $.value = "inbox";
+
+    $.items = [
+        {
+            title: "Звонки",
+            subtitle: "Звонки c сайта",
+            name: "callback"
+        },
+        {
+            title: "Письма",
+            subtitle: "Все письма",
+            name: "feedback"
+        },
+        {
+            title: "Онлайн-чаты",
+            subtitle: "Онлайн-чаты",
+            name: "chat"
+        },
+        {
+            title: "Заявки",
+            subtitle: "Все заявки",
+            name: "order"
+        },
+        {
+            title: "Входящие",
+            subtitle: "Все входящие",
+            name: "inbox"
+        }
+    ];
+
+    $.show = function(){
+        $.active = true;
+        $.update();
+    };
+
+    $.onSelect = function(){
+        $.value = this.name;
+        $.active = false;
+        $dataHeader.headerTitle = this.title;
+        $dataHeader.update();
+    };
+
+</script>
+
+</data-menu>

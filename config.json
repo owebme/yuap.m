@@ -1,0 +1,23 @@
+{
+    "port": 8080,
+    "security": {
+        "tokenLife" : 3600
+    },
+    "mongodb": {
+        "uri": "mongodb://localhost/yuap"
+    },
+    "default": {
+        "api": {
+            "version" : "v1"
+        },
+        "user": {
+            "username": "root",
+            "password": "1234"
+        },
+        "client": {
+            "name": "Android API v1",
+            "clientId": "android",
+            "clientSecret": "SomeRandomCharsAndNumbers"
+        }
+    }
+}

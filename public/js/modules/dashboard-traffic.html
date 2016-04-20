@@ -1,0 +1,77 @@
+<dashboard-traffic class="section section__secondary section__header__nofixed">
+
+    <div id="dashboard__traffic__scroll" class="section__wrapper">
+        <div class="section__container">
+            <header class="header__black">
+                <div class="header__title">Статистика входящих</div>
+                <div class="header__left">
+                    <div onclickDelegate={ onClose } class="alarm__list__close header__icon header__icon__back"></div>
+                </div>
+                <div class="header__right">
+                    <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div>
+                </div>
+            </header>
+            <div class="dashboard__screen">
+                <div class="dashboard__screen__label">cегодня</div>
+                <span id="dashboard__traffic__big">5,3,9,6</span>
+            </div>
+            <div class="dashboard__table">
+                <div class="dashboard__table__row">
+                    <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#00d1fe"></span>Обратные звонки</div>
+                    <div class="w-15p t-center c-gray">12%</div>
+                    <div class="w-15p t-center"><strong>3</strong></div>
+                </div>
+                <div class="dashboard__table__row">
+                    <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ffe02d"></span>Онлайн-чаты</div>
+                    <div class="w-15p t-center c-gray">24%</div>
+                    <div class="w-15p t-center"><strong>5</strong></div>
+                </div>
+                <div class="dashboard__table__row">
+                    <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#b77de9"></span>Сообщения</div>
+                    <div class="w-15p t-center c-gray">27%</div>
+                    <div class="w-15p t-center"><strong>6</strong></div>
+                </div>
+                <div class="dashboard__table__row">
+                    <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ff9498"></span>Заявки</div>
+                    <div class="w-15p t-center c-gray">18%</div>
+                    <div class="w-15p t-center"><strong>4</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    // close section
+    $.onClose = function(e){
+        $dashboardList.closeSection("traffic");
+    };
+
+    this.on("mount", function(){
+
+        $$($["dashboard__traffic__big"]).peity("donut", {
+            //fill: ["#6a76fc", "#ffe02d", "#b77de9", "#00d8aa"],
+            fill: ["#00d1fe", "#ffe02d", "#b77de9", "#ff9498"],
+            width: 176,
+            height: 176
+        });
+
+        $.iScrollList = new IScroll($["dashboard__traffic__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+    });
+
+</script>
+
+</dashboard-traffic>

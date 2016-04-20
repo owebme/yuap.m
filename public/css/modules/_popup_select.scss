@@ -1,0 +1,181 @@
+.popup__select {
+    @include abs();
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    transform:translate3d(-101%, 0, 0);
+    transition:transform 0s 0.45s;
+    z-index:200;
+
+    &:before {
+        @include abs();
+        opacity:0;
+        content:"";
+        background:rgba($bg_color,.8);
+        transition:opacity 0.25s $cubic34 0.12s;
+    }
+}
+.popup__select__wrapper {
+    opacity:0;
+    position:relative;
+    width:88.8%;
+    background:linear-gradient(to bottom, rgba(#3173ec,.95), rgba($blue,.95));
+    //background-image:linear-gradient(165deg, lighten(#5d73bc, 2%), lighten(#576cb2, 1.5%));
+    border-radius:13px;
+    padding:3px 0;
+    transform:perspective(500px) scale(0.83);
+    transition:opacity 0.2s $cubic34 0.12s, transform 0.2s $cubic34 0.12s;
+    z-index:1;
+}
+.popup__select__container {
+    border-radius:13px;
+    overflow:hidden;
+}
+.popup__select__item {
+    position:relative;
+    padding:17px 20px 17px 16px;
+    color:rgba(#fff,.7);
+    border-top:1px solid rgba(#fff,.15);
+}
+.popup__select__item:first-child {
+    border:none;
+}
+.popup__select__item__title {
+    position:relative;
+    display:inline-block;
+    font-family:$pragmatica;
+    font-size:20px;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    max-width:90%;
+    overflow:hidden;
+    vertical-align:top;
+}
+.popup__select__status__icon {
+    position:absolute;
+    top:-48px;
+    right:50px;
+    width:82px;
+    height:82px;
+    border:3px solid #fff;
+    border-radius:50%;
+    overflow:hidden;
+}
+.popup__select__status__icon__item {
+    position:absolute;
+    top:-7%;
+    left:-5.5%;
+    width:112%;
+    height:112%;
+    background-position:center top;
+    background-repeat:no-repeat;
+    background-size:cover;
+}
+.popup__select__status__icon__item--callback {
+    top:-4%;
+    left:-4%;
+    width:108%;
+    height:108%;
+    background-image:url(/public/images/list-callback.svg);
+}
+.popup__select__status__icon__item--feedback {
+    background-image:url(/public/images/list-feedback.svg);
+}
+.popup__select__status__icon__item--chat {
+    top:-4%;
+    left:-4%;
+    width:108%;
+    height:108%;
+    background-image:url(/public/images/list-chat.svg);
+}
+.popup__select__status__icon__item--order {
+    top:-4%;
+    left:-4%;
+    width:108%;
+    height:108%;
+    background-image:url(/public/images/list-order.svg);
+}
+.popup__select__status__color:after {
+    content:"";
+    position:absolute;
+    bottom:16px;
+    right:16px;
+    width:24px;
+    height:24px;
+    border:2px solid rgba(#fff,.9);
+    border-radius:50%;
+}
+.popup__select__status__blank:after {
+    background:#fff;
+    opacity:0.4;
+}
+.popup__select__status__orange:after {
+    background:$orange;
+}
+.popup__select__status__yellow:after {
+    background:$yellow_darken;
+}
+.popup__select__status__azure:after {
+    background:$azure;
+}
+.popup__select__status__blue:after {
+    background:$blue;
+}
+.popup__select__status__violet:after {
+    background:$violet_light;
+}
+.popup__select__status__red:after {
+    background:$red;
+}
+.popup__select__status__green:after {
+    background:$green_light;
+}
+.popup__select__item--active {
+    color:#fff;
+
+    &.popup__select__item:after {
+        opacity:1;
+        content:"";
+        position:absolute;
+        bottom:16px;
+        right:15px;
+        width:26px;
+        height:26px;
+        background:url(/public/images/checkbox_white.svg) no-repeat 0 0 / cover;
+        border:none;
+        border-radius:0px;
+    }
+    .popup__select__status__color:after {
+        display:none;
+    }
+}
+.popup__select__item:active {
+    color:#fff;
+    background-color:rgba(#fff,.2);
+}
+
+.popup__select--active {
+    transition:transform 0s;
+    transform:translate3d(0, 0, 0);
+
+    &:before {
+        opacity:1;
+        transition:opacity 0.25s $cubic215;
+    }
+    .popup__select__wrapper {
+        opacity:1;
+        transform:perspective(500px) scale(1);
+        transition:opacity 0.25s $cubic215, transform 0.25s cubic-bezier(0.42, 0, 0.05, 1.25);
+    }
+}
+
+@media screen and (max-width:320px){
+    .popup__select__item {
+        padding-top:14px;
+        padding-bottom:14px;
+
+        &:after {
+            margin-bottom:-3px;
+        }
+    }
+}

@@ -1,0 +1,24 @@
+<root-section id="root">
+
+    <section id="sections">
+        <dashboard-section></dashboard-section>
+        <data-section></data-section>
+        <!-- <chat-list></chat-list> -->
+    </section>
+
+    <popup-select></popup-select>
+    <alert-window></alert-window>
+    <alarm-section></alarm-section>
+    <!-- <login-section></login-section> -->
+
+<script>
+
+    $root = this;
+
+    this.on("mount", function(){
+        app.sections.init("data");
+    });
+
+</script>
+
+</root-section>

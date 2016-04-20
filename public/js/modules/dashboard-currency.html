@@ -1,0 +1,70 @@
+<dashboard-currency class="section section__secondary section__header__nofixed">
+
+    <div id="dashboard__currency__scroll" class="section__wrapper">
+        <div class="section__container">
+            <header class="header__black">
+                <div class="header__title">Курсы валют</div>
+                <div class="header__left">
+                    <div onclickDelegate={ onClose } class="alarm__list__close header__icon header__icon__back"></div>
+                </div>
+                <div class="header__right">
+                    <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div>
+                </div>
+            </header>
+            <div class="dashboard__screen dashboard__screen--currency">
+                <div class="dashboard__screen__label">cегодня</div>
+                <div class="dashboard__screen__label dashboard__screen__label--left">ЦБ РФ</div>
+                <div class="dashboard__screen__currency dashboard__screen__currency--line">
+                    <div class="dashboard__screen__currency__item dashboard__screen__currency__value">66,69 <span class="dashboard__screen__currency__rub">Р</span></div>
+                    <div class="dashboard__screen__currency__item dashboard__screen__currency__title">$</div>
+                </div>
+                <div class="dashboard__screen__currency">
+                    <div class="dashboard__screen__currency__item dashboard__screen__currency__title">&euro;</div>
+                    <div class="dashboard__screen__currency__item dashboard__screen__currency__value">75,99 <span class="dashboard__screen__currency__rub">Р</span></div>
+                </div>
+            </div>
+            <div class="dashboard__table">
+                <div class="dashboard__table__row">
+                    <div class="c-gray">Австралийский доллар</div>
+                    <div class="t-right"><strong>50.726 Р</strong></div>
+                </div>
+                <div class="dashboard__table__row">
+                    <div class="c-gray">Белорусский рубль</div>
+                    <div class="t-right"><strong>33.604 Р</strong></div>
+                </div>
+                <div class="dashboard__table__row">
+                    <div class="c-gray">Венгерский форинт</div>
+                    <div class="t-right"><strong>24.500 Р</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    // close section
+    $.onClose = function(e){
+        $dashboardList.closeSection("currency");
+    };
+
+    this.on("mount", function(){
+
+        $.iScrollList = new IScroll($["dashboard__currency__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+    });
+
+</script>
+
+</dashboard-currency>

@@ -1,0 +1,66 @@
+<popup-select class="popup__select { popup__select--active : active }">
+
+    <div class="popup__select__wrapper">
+
+        <div if={ type === "status" } class="popup__select__container">
+            <div onclickDelegateUpdateAll={ onSelect } each={ items } no-reorder class="popup__select__item { popup__select__item--active : _id == value }">
+                <div class="popup__select__status__color popup__select__status__{ color }">
+                    <span class="popup__select__item__title">{ title }</span>
+                </div>
+            </div>
+        </div>
+        <div if={ type === "status" && icon.type } class="popup__select__status__icon">
+            <div if={ icon.type !== "profile" } class="popup__select__status__icon__item popup__select__status__icon__item--{ icon.type }"></div>
+            <div if={ icon.type === "profile" } class="popup__select__status__icon__item" style="background-image:url({ icon.image })"></div>
+        </div>
+
+        <div if={ !type } class="popup__select__container">
+            <div onclickDelegateUpdateAll={ onSelect } each={ items } no-reorder class="popup__select__item">
+                <span class="popup__select__item__title">{ title }</span>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root);
+
+    $.active = false;
+
+    $.items = {};
+
+    $.show = function(data){
+        if (data){
+            $.type = data.type;
+            $.icon = data.icon;
+            $.items = data.data;
+            $.value = data.value;
+            $.callback = data.callback;
+            $.active = true;
+            $.update();
+        }
+    };
+
+    $.onSelect = function(){
+        var id = this._id;
+        $.value = id;
+        $.active = false;
+        if ($.callback) $.callback(id);
+    };
+
+    this.on("mount", function(){
+
+        $scope.on(clickEvent, function(e){
+            if (e.target.getAttribute("class") && e.target.getAttribute("class").match(/popup__select--active/)){
+                $.active = false;
+                $.update();
+            }
+        });
+
+    });
+
+</script>
+
+</popup-select>

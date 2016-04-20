@@ -1,0 +1,197 @@
+#sections {
+	position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+	perspective:500px;
+	overflow: hidden;
+	background:$black;
+}
+.d-ios {
+    #sections {
+	    perspective:none;
+    }
+}
+.section {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+	font-family:$arial;
+    backface-visibility:hidden;
+    transform-style:flat;
+    overflow:hidden;
+    // transform:translate3d(110%, 0, 0);
+    // opacity:0.33;
+    // transform:translate3d(-8%, 0, 0) rotateY(-6deg) scale(0.8);
+}
+.section__marquee {
+	opacity:0;
+	transform-origin:100% 50%;
+}
+.section__primary {
+	transition:transform .42s $cubic645, opacity .42s $cubic645;
+    transform-origin:0% 50%;
+    transform:perspective(500px);
+	z-index:2;
+}
+.section__primary.section--hidden {
+	opacity:0.4;
+    transition:transform .6s $cubic645, opacity .6s $cubic645;
+    transform:perspective(500px) scale(.96) translate3d(4%, 0, 0) rotateY(4deg);
+}
+.section__secondary {
+	display:none;
+	transform:perspective(500px) translate3d(101%, 0, 0);
+	z-index:5;
+}
+.section__secondary.section--active,
+.section__secondary.section--show {
+    display:block;
+    animation:section__secondary__show 0.42s $cubic645 forwards alternate;
+}
+.d-ios {
+	.section__secondary.section--show {
+	    display:block;
+	    animation:section__secondary__show 0.42s $cubic645 0.02s forwards alternate;
+	}
+}
+@keyframes section__secondary__show {
+    0%   {transform:perspective(500px) translate3d(101%, 0, 0);}
+    100% {transform:perspective(500px) translate3d(0, 0, 0);}
+}
+.section__secondary.section--active {
+	transform:perspective(500px) translate3d(0, 0, 0);
+    animation:none;
+}
+.section__secondary.section--hidden {
+    animation:section__secondary__hidden 0.42s $cubic645 forwards alternate;
+}
+@keyframes section__secondary__hidden {
+    0%   {transform:perspective(500px) translate3d(0, 0, 0);}
+    100% {transform:perspective(500px) translate3d(101%, 0, 0);}
+}
+.section__right {
+	transform:translate3d(101%, 0, 0);
+	transition:transform 0s 0.5s;
+	z-index:100;
+}
+.section__right:before {
+	opacity:0;
+    content:"";
+    @include abs();
+    background:rgba($bg_color,.8);
+	transition:opacity 0.32s $cubic645 0.1s;
+}
+.section__right {
+	.section__wrapper {
+		transform:perspective(500px) translate3d(101%, 0, 0);
+		transition:transform 0.35s $cubic57;
+		z-index:1;
+	}
+}
+.section__right__not__fully {
+	.section__wrapper {
+		left:10%;
+		transition:transform 0.5s cubic-bezier(0.42, 0, 0.05, 1.175);
+	}
+	.section__container {
+		width:90%;
+	}
+}
+.section__right.section--show {
+	transform:translate3d(0, 0, 0);
+	transition:transform 0s;
+}
+.section__right.section--show:before {
+	opacity:1;
+	transition:opacity 0.42s $cubic645;
+}
+.section__right.section--show .section__wrapper {
+    transform:perspective(500px) translate3d(0, 0, 0);
+}
+.section__down {
+	transform:translate3d(0, 101%, 0);
+	transition:transform 0s 0.42s;
+
+	.section__down__wrapper {
+		@include abs();
+		overflow:hidden;
+		transform:perspective(500px) translate3d(0, 101%, 0);
+		transition:transform 0.35s $cubic57;
+	}
+	&:before {
+		opacity:0;
+		content:"";
+		@include abs();
+		background:rgba($bg_color,.8);
+		transition:opacity 0.32s $cubic645 0.1s;
+	}
+}
+.section__down.section--show {
+	transform:translate3d(0, 0, 0);
+	transition:transform 0s;
+
+	.section__down__wrapper {
+		transform:perspective(500px) translate3d(0, 0, 0);
+	}
+	&:before {
+		opacity:1;
+		transition:opacity 0.42s $cubic645;
+	}
+}
+.section__wrapper {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:#fff;
+    overflow:hidden;
+	z-index:-1;
+}
+.section__container {
+    position:absolute;
+    left:0;
+    width:100%;
+	transform:translateZ(0);
+	padding-top:52px;
+}
+.section__header__without,
+.section__header__nofixed {
+    .section__container {
+		padding-top:0;
+	}
+}
+.section--loading {
+	&:before {
+		content:"";
+		@include abs();
+		background-image:linear-gradient(to bottom, rgba($black_dark,.87), rgba($black_light,.87));
+		z-index:100;
+	}
+	&:after {
+		content:"";
+		@include abs();
+		background:url(/public/images/loading_white.svg) no-repeat center center;
+		animation:spinner 1s infinite linear;
+		z-index:101;
+	}
+}
+.horizontal-space {
+    position: absolute;
+    left: 0;
+    top: -200%;
+    width: 20000%;
+}
+.horizontal-space__screen {
+    float: left;
+}
+
+@keyframes spinner {
+	0% {transform:rotate(0)}
+	100% {transform:rotate(360deg)}
+}

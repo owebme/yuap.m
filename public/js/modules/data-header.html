@@ -1,0 +1,246 @@
+<data-header class="header header__data__list">
+
+    <div onclickDelegate={ openMenu } class="header__title">{ headerTitle }</div>
+    <div class="header__left">
+        <div class="header__icon UI__menu"><div class="UI__menu__item"></div></div>
+    </div>
+    <div class="header__right">
+        <div onclickDelegate={ openAlarm } class="header__icon header__icon__alarm header__icon__alarm--active">
+            <div class="header__icon__alarm__counts">3</div>
+        </div>
+        <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div>
+    </div>
+    <div class="header__data__panel { header__data__panel--active : show }">
+        <div class="header__left">
+            <div onclickDelegateUpdate={ onClear } class="header__icon header__icon__back__white"></div>
+            <div class="header__icon header__data__panel__count">{ counts }</div>
+        </div>
+        <div class="header__right">
+            <div onclickDelegateUpdate={ onViewed } class="header__icon header__data__panel__viewed"></div>
+            <div onclickDelegateUpdate={ onImportant } class="header__icon header__data__panel__important"></div>
+            <div onclickDelegate={ onRemove } class="header__icon header__data__panel__remove"></div>
+            <div onclickDelegate={ onStatus } class="header__icon header__data__panel__folder"></div>
+            <div onclickDelegate={ onCheckAll } class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div>
+        </div>
+    </div>
+    <div class="data__list__loader">
+        <i class="data__list__loader__blank"></i>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $alert = $root.tags["alert-window"],
+    $popupSelect = $root.tags["popup-select"],
+    $dataList = $.parent.tags["data-list"],
+    $dataMenu = $.parent.tags["data-menu"],
+    $dataListScope = $$($dataList.root);
+
+    $.headerTitle = "Входящие";
+
+    this.on("mount", function(){
+        $.loader();
+    });
+
+    $.openMenu = function(){
+        $dataMenu.show();
+    };
+
+    $.onClear = function(update){
+        $dataList.unChecked();
+        $.show = false;
+        $.counts = 0;
+        if (update) $.update();
+    };
+
+    $.onViewed = function(){
+        $fetch('data/list/viewed', "put", _.pluck($dataList.data.get('isChecked'), "_id"));
+        $dataList.data.get('isChecked', function(item) {
+            item.new = false;
+        });
+        $.onClear();
+    };
+
+    $.onImportant = function(){
+        $dataList.data.get('isChecked', function(item){
+            if (item.important) {
+                item.important = false;
+                $fetch('data/list/unimportant', "put", [item._id]);
+            }
+            else {
+                item.important = true;
+                $fetch('data/list/important', "put", [item._id]);
+            }
+        });
+        $.onClear();
+    };
+
+    $.onRemove = function(){
+        $alert.show({
+            title: "Удалить выбранные?",
+            success: {
+                callback: function(){
+                    $fetch('data/list/remove', "delete", _.pluck($dataList.data.get('isChecked'), "_id"));
+                    $dataList.data.get('isChecked', function(item){
+                        item.remove = true;
+                    });
+                    $.onClear(true);
+                    app.utils.onEndTransition($dataListScope.find(".data__list__item--remove:first")[0], function(){
+                        var items = $dataList.data._data.items;
+                        for (var i = 0; i < items.length; i++){
+                            if (items[i].remove){
+                                items.splice(i, 1);
+                                i--;
+                            }
+                        }
+                        $dataList.update();
+                        $dataList.iScrollList.refresh();
+                    });
+                }
+            }
+        });
+    };
+
+    $.onStatus = function(){
+        $popupSelect.show({
+            type: "status",
+            data: $dataList.data.get('status'),
+            callback: function(value){
+                console.dir($dataList.data.isCheckedIds());
+                $fetch('data/list/status/' + value, "put", _.pluck($dataList.data.get('isCheckedIds'), "_id"));
+                $dataList.data.get('isChecked', function(item){
+                    item.status = value;
+                });
+                $.onClear(true);
+            }
+        });
+    };
+
+    $.onCheckAll = function(){
+        var counts = 0;
+        $dataList.data.get('items', function(item){
+            item.checked = true;
+            counts++;
+        });
+        $.counts = counts;
+        $.update();
+        $dataList.update();
+    };
+
+    if ($root.tags["alarm-section"]){
+
+        var $alarm_section = $$($root.tags["alarm-section"].root);
+
+        $.openAlarm = function(){
+            $alarm_section.addClass("section--show");
+        };
+    }
+
+    $.loader = function(){
+
+        if ($.loader.app) {
+            $.loader.app.start();
+            return;
+        }
+
+        var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
+        var Loader = function(){
+            this.addBanner = bind(this.addBanner, this);
+        };
+
+        Loader.prototype.loaded = 0;
+
+        Loader.prototype.loop = 0;
+
+        Loader.prototype.total = 80;
+
+        Loader.prototype.lastPicked = ["blank", "blank", "blank"];
+
+        Loader.prototype.colors = ["red", "green", "blue", "yellow", "purple"];
+
+        Loader.prototype.end = true;
+
+        Loader.prototype.init = function() {
+            this.getElements();
+        };
+
+        Loader.prototype.start = function() {
+            if (!this.end) return;
+
+            var self = this;
+            this.loaded = 0;
+            this.loadSim = null;
+            this.loadCheck = null;
+            this.end = false;
+            this.loop++;
+            this.addListeners();
+
+            setTimeout(function(){
+                //console.log("start");
+                self.el.setAttribute("class", "data__list__loader data__list__loader--active");
+            }, 350);
+        };
+
+        Loader.prototype.getElements = function() {
+            return this.el = document.getElementsByClassName("data__list__loader")[0];
+        };
+
+        Loader.prototype.addListeners = function() {
+            var self = this;
+            this.animationLoop = function(){
+                self.loadSim = setInterval((function(_this) {
+                    return function() {
+                        return _this.loaded += 1 + Math.floor(Math.random() * 4);
+                    };
+                })(self), 200);
+                self.loadCheck = setInterval((function(_this) {
+                    return function() {
+                        if (_this.loaded < _this.total) {
+                            return _this.addBanner();
+                        } else {
+                            if (_this.loadSim){
+                                setTimeout(function(){
+                                    //console.log("end");
+                                    self.el.setAttribute("class", "data__list__loader");
+                                    self.end = true;
+                                }, 1500);
+                            }
+                            clearInterval(_this.loadSim);
+                            _this.loadSim = null;
+                            return clearInterval(_this.loadCheck);
+                        }
+                    };
+                })(self), 200);
+            };
+            if (this.loop < 2) app.utils.raf(this.animationLoop);
+            this.animationLoop();
+        };
+
+        Loader.prototype.addBanner = function() {
+            var banner, color, results;
+            banner = document.createElement("i");
+            color = this.lastPicked[0];
+            while (this.lastPicked.indexOf(color) !== -1) {
+                color = this.colors[Math.floor(Math.random() * this.colors.length)];
+            }
+            this.lastPicked.unshift(color);
+            this.lastPicked.pop();
+            banner.setAttribute("class", "data__list__loader__" + color);
+            this.el.insertBefore(banner, this.el.children[0]);
+            results = [];
+            while (this.el.children.length > 12) {
+                results.push(this.el.removeChild(this.el.children[12]));
+            }
+            return results;
+        };
+
+        $.loader.app = new Loader();
+
+        $.loader.app.init();
+    };
+
+</script>
+
+</data-header>

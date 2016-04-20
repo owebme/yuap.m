@@ -1,0 +1,54 @@
+.header__title__chat__room {
+    color:#524c7e;
+}
+.header__icon__avatar {
+    top:-1px;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#f0f1f5;
+}
+.header__icon__avatar:before {
+    content:"";
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:30px;
+    height:30px;
+    margin:-15px 0 0 -15px;
+    background:url(/public/images/messages.svg) no-repeat 0 0 / cover;
+}
+.header__icon__avatar__container {
+    position:absolute;
+    top:1px;
+    left:1px;
+    width:40px;
+    height:40px;
+    overflow:hidden;
+    border-radius:50%;
+}
+.header__icon__avatar__image {
+    position:absolute;
+    top:-2.5%;
+    left:-2.5%;
+    width:105%;
+    height:105%;
+    background-size:cover;
+    background-repeat:no-repeat;
+    background-position:center top;
+}
+.header__icon__avatar__status {
+    position:absolute;
+    top:2px;
+    right:-2px;
+    width:13px;
+    height:13px;
+    border-radius:50%;
+    border:2px solid #fff;
+}
+.header__icon__avatar__status--online {
+    background:#00d8aa;
+}
+.header__icon__avatar__status--offline {
+    background:#ff665a;
+}

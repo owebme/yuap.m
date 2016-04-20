@@ -1,0 +1,31 @@
+{
+  "name": "yuap.m",
+  "description": "",
+  "main": "chat.js",
+  "authors": [
+    "owebme <owebme@gmail.com>"
+  ],
+  "license": "ISC",
+  "moduleType": [],
+  "homepage": "https://github.com/owebme/yuap.m",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "hammerjs": "hammer.js#^2.0.6",
+    "Chart.js": "chartjs#^1.1.1",
+    "circliful": "^1.0.0",
+    "moment": "^2.12.0",
+    "morris.js": "morrisjs#^0.5.1",
+    "peity": "^3.2.0",
+    "riot": "^2.3.17",
+    "sparkline": "^2.1.2",
+    "skycons-html5": "*",
+    "sparklines": "^1.0.0",
+    "tempusjs": "tempus#^0.2.18"
+  }
+}
