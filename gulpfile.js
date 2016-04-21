@@ -41,7 +41,8 @@ gulp.task('css', function() {
 });
 
 gulp.task('js', function() {
-	gulp.src('public/js/modules/*.html')
+	gulp.src(['public/js/modules/*.html',
+		'public/js/modules/**/*.html'])
 		.pipe(riot())
 		.pipe(concat('modules.js'))
 		.pipe(gulp.dest('./public/js'));
@@ -52,11 +53,19 @@ gulp.task('js', function() {
 		.pipe(gulp.dest('./public/js'));		
 		
 	setTimeout(function(){	
-		gulp.src(['bower_components/riot/riot.js',
-			'public/js/libs/zepto.min.js',
+		gulp.src(['public/js/libs/zepto.min.js',
+			'bower_components/riot/riot.update.js',
+			'bower_components/tempusjs/min/tempusjs.min.js',
+			'bower_components/circliful/js/circliful.js',
+			'bower_components/peity/jquery.peity.js',
+			'bower_components/skycons-html5/skycons.js',
+			'bower_components/baobab/build/baobab.js',
+			'bower_components/underscore/underscore-min.js',
 			'public/js/libs/iscroll-lite.full.js',
 			'public/js/libs/modernizr.custom.js',
-			'public/js/modules.js',
+			'public/js/components.js',
+			'public/js/libs/http.js',
+			'public/js/modules.js',			
 			'public/js/init.js'])
 			.pipe(concat('app.js'))
 		    .pipe(uglify())
@@ -73,7 +82,8 @@ gulp.task('watch', function() {
 		"public/js/init.js",
 		"public/js/components/*.js",
 		"public/js/stores/*.js",
-		"public/js/modules/*.html"]).on("change", reload);				
+		"public/js/modules/*.html",
+		"public/js/modules/**/*.html"]).on("change", reload);				
 });
 
 gulp.task('default', ['css', 'js', 'watch']);

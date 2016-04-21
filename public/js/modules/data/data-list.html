@@ -51,18 +51,7 @@
                 return item.checked === true;
               });
             }
-        ),
-        isCheckedIds: function(){
-            return _.pluck($.data.get('isChecked'), "_id");
-        }
-    },
-    {
-        autoCommit: false,
-        asynchronous: true,
-        immutable: false,
-        lazyMonkeys: false,
-        persistent: false,
-        pure: true
+        )
     });
 
     this.on("mount", function(){
@@ -116,6 +105,10 @@
         app.iScrollDataList = $.iScrollList;
     });
 
+    $.getCheckedIds = function(){
+        return _.pluck($.data.get('isChecked'), "_id");
+    };
+
     $.getDate = function(date){
         var days = tempus().between(tempus(date), 'day');
         if (days > 0) return tempus(date).format('%H:%M');
@@ -168,6 +161,7 @@
             data: $.data.get('status'),
             value: this.item.status,
             callback: function(value){
+                $fetch('data/list/status/' + value, "put", [id]);
                 $.data.select('items', {'_id': id}).set("status", value);
                 _this.update();
             }

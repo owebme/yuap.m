@@ -25,6 +25,7 @@ var allowCrossDomain = function(req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+	//res.header("Content-Type", "application/json; charset=utf-8");
 	
     if ('OPTIONS' == req.method) {
       res.send(200);
@@ -49,6 +50,10 @@ db.once('open', function callback () {
 });
 
 app.use('/', require('./routes/index'));
+
+app.use('/parser', require('./routes/parser'));
+
+app.use('/api/dashboard', require('./routes/api/dashboard'));
 
 app.use('/api/data/list', require('./routes/api/dataList'));
 

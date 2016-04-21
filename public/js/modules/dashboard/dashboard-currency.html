@@ -15,26 +15,18 @@
                 <div class="dashboard__screen__label">cегодня</div>
                 <div class="dashboard__screen__label dashboard__screen__label--left">ЦБ РФ</div>
                 <div class="dashboard__screen__currency dashboard__screen__currency--line">
-                    <div class="dashboard__screen__currency__item dashboard__screen__currency__value">66,69 <span class="dashboard__screen__currency__rub">Р</span></div>
+                    <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{ data.get("usd") } <span class="dashboard__screen__currency__rub">Р</span></div>
                     <div class="dashboard__screen__currency__item dashboard__screen__currency__title">$</div>
                 </div>
                 <div class="dashboard__screen__currency">
                     <div class="dashboard__screen__currency__item dashboard__screen__currency__title">&euro;</div>
-                    <div class="dashboard__screen__currency__item dashboard__screen__currency__value">75,99 <span class="dashboard__screen__currency__rub">Р</span></div>
+                    <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{ data.get("euro") } <span class="dashboard__screen__currency__rub">Р</span></div>
                 </div>
             </div>
             <div class="dashboard__table">
-                <div class="dashboard__table__row">
-                    <div class="c-gray">Австралийский доллар</div>
-                    <div class="t-right"><strong>50.726 Р</strong></div>
-                </div>
-                <div class="dashboard__table__row">
-                    <div class="c-gray">Белорусский рубль</div>
-                    <div class="t-right"><strong>33.604 Р</strong></div>
-                </div>
-                <div class="dashboard__table__row">
-                    <div class="c-gray">Венгерский форинт</div>
-                    <div class="t-right"><strong>24.500 Р</strong></div>
+                <div each={item in data.get("items")} no-reorder class="dashboard__table__row">
+                    <div class="dashboard__table__string c-gray">{ item.title }</div>
+                    <div class="t-right"><strong>{ item.value } Р</strong></div>
                 </div>
             </div>
         </div>
@@ -46,10 +38,11 @@
     $scope = $$($.root),
     $dashboardList = $.parent.tags["dashboard-list"];
 
-    // close section
-    $.onClose = function(e){
-        $dashboardList.closeSection("currency");
-    };
+    $.data = new Baobab({
+        usd: null,
+        euro: null,
+        items: []
+    });
 
     this.on("mount", function(){
 
@@ -62,8 +55,12 @@
             app.utils.raf(animationLoop);
             app.utils.getScroll($.iScrollList);
         })();
-
     });
+
+    // close section
+    $.onClose = function(e){
+        $dashboardList.closeSection("currency");
+    };
 
 </script>
 

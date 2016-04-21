@@ -104,10 +104,17 @@
     height:62px;
     padding:0 20px 0 10px;
     border-bottom:1px solid #ededed;
+    white-space:nowrap;
 }
 .dashboard__table__title {
     font-size:20px;
     font-family:$proxima;
+}
+.dashboard__table__string {
+    max-width:70%;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    overflow:hidden;
 }
 .dashboard__table__circle {
     display:inline-block;
@@ -131,12 +138,17 @@
     background:url(/public/images/weather/icon2.svg) no-repeat 0 0 / cover;
 }
 .dashboard__screen__weather__description {
-    margin-right:25px;
+    min-width:148px;
+    max-width:162px;
     margin-left:20px;
+    // margin-right:25px;
 }
 .dashboard__screen__weather__temp {
     font-size:54px;
     margin:0 0 20px;
+}
+.dashboard__screen__weather__temp__to {
+    font-size:32px;
 }
 .dashboard__screen__weather__text {
     color:rgba(#fff,.85);
@@ -152,6 +164,9 @@
     width:20%;
     border-right:1px solid #ededed;
     @include flex("column", "center", "center");
+}
+.dashboard__weather__week__item--active {
+    background:rgba(#c1e7ff,.25);
 }
 .dashboard__weather__week__item:last-child {
     border:none;

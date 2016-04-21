@@ -31,19 +31,19 @@
                 <div class="dashboard__tile__label">сегодня</div>
                 <canvas id="partly-cloudy-night" class="dashboard__weather__canvas"></canvas>
                 <div class="dashboard__weather">
-                    <div class="dashboard__weather__temp">+6</div>
-                    <div class="dashboard__weather__text">Облачно, дождь</div>
-                    <div class="dashboard__weather__text">70% / 745 мм рт.с.</div>
+                    <div class="dashboard__weather__temp">{ data.weather.day > 0 ? "+" + data.weather.day : data.weather.day }...<span class="dashboard__weather__temp__to">{ data.weather.night > 0 ? "+" + data.weather.night : data.weather.night }</span></div>
+                    <div class="dashboard__weather__text">{ data.weather.type }</div>
+                    <div class="dashboard__weather__text">{ data.weather.humidity }% / { data.weather.pressure } мм рт.с.</div>
                 </div>
             </div>
             <div onclickDelegate={ openCurrency } class="dashboard__tile dashboard__tile__currency">
                 <div class="dashboard__currency">
                     <div class="dashboard__currency__title">$</div>
-                    <div class="dashboard__currency__value">68,89</div>
+                    <div class="dashboard__currency__value">{ data.currency.usd }</div>
                 </div>
                 <div class="dashboard__currency">
                     <div class="dashboard__currency__title">&euro;</div>
-                    <div class="dashboard__currency__value">78,27</div>
+                    <div class="dashboard__currency__value">{ data.currency.euro }</div>
                 </div>
             </div>
         </div>
@@ -55,58 +55,38 @@
     $scope = $$($.root),
     $section = $$($.parent.root);
 
-    // open next section
-    $.openDataList = function(e){
-        app.sections.nav("data-list");
-    };
-
-    // open balance
-    $.openBalance = function(e){
-        $.openSection("balance");
-    };
-
-    // open traffic
-    $.openTraffic = function(e){
-        $.openSection("traffic");
-    };
-
-    // open weather
-    $.openWeather = function(e){
-        $.openSection("weather");
-    };
-
-    // open currency
-    $.openCurrency = function(e){
-        $.openSection("currency");
-    };
-
-    // open inner section
-    $.openSection = function(section){
-        $.sections[section].section.addClass("section--show");
-        $scope.addClass("section--hidden");
-
-        app.utils.onEndAnimation($.sections[section].section[0], function(){
-            $.sections[section].section.addClass("section--active").removeClass("section--show");
-            $.sections[section].tag.iScrollList.refresh();
-            // if (section === "weather"){
-            //     $.sections[section].tag.skycons.play();
-            // }
-        });
-    };
-
-    $.closeSection = function(section){
-        $.sections[section].section.addClass("section--hidden");
-        $scope.removeClass("section--hidden");
-
-        app.utils.onEndAnimation($.sections[section].section[0], function(){
-            $.sections[section].section.removeClass("section--active").removeClass("section--hidden");
-            // if (section === "weather"){
-            //     $.sections[section].tag.skycons.pause();
-            // }
-        });
+    $.data = {
+        weather: {},
+        currency: {}
     };
 
     this.on("mount", function(){
+
+        $fetch('dashboard/init', "get").then(function(data){
+
+            var $weather = $.sections["weather"].tag,
+                $currency = $.sections["currency"].tag.data;
+
+            $weather.data = data.weather;
+            $.data.weather = data.weather.now;
+
+            $currency.set('items', data.currency);
+            var usd = $currency.get('items', {'code': 'USD'}, 'value'),
+                euro = $currency.get('items', {'code': 'EUR'}, 'value');
+
+            $currency.set('usd', String(usd).replace(/\./g, ','));
+            $currency.set('euro', String(euro).replace(/\./g, ','));
+
+            $.data.currency = {
+                usd: String(parseFloat(usd).toFixed(2)).replace(/\./g, ','),
+                euro: String(parseFloat(euro).toFixed(2)).replace(/\./g, ',')
+            };
+
+            $.update();
+            $.sections["weather"].tag.update();
+            $.sections["currency"].tag.update();
+            $.sections["currency"].tag.iScrollList.refresh();
+        });
 
         $.sections = {
             balance: {
@@ -176,6 +156,57 @@
         app.iScrollDashboardList = $.iScrollList;
 
     });
+
+    // open next section
+    $.openDataList = function(e){
+        app.sections.nav("data");
+    };
+
+    // open balance
+    $.openBalance = function(e){
+        $.openSection("balance");
+    };
+
+    // open traffic
+    $.openTraffic = function(e){
+        $.openSection("traffic");
+    };
+
+    // open weather
+    $.openWeather = function(e){
+        $.openSection("weather");
+    };
+
+    // open currency
+    $.openCurrency = function(e){
+        $.openSection("currency");
+    };
+
+    // open inner section
+    $.openSection = function(section){
+        $.sections[section].section.addClass("section--show");
+        $scope.addClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.addClass("section--active").removeClass("section--show");
+            $.sections[section].tag.iScrollList.refresh();
+            // if (section === "weather"){
+            //     $.sections[section].tag.skycons.play();
+            // }
+        });
+    };
+
+    $.closeSection = function(section){
+        $.sections[section].section.addClass("section--hidden");
+        $scope.removeClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.removeClass("section--active").removeClass("section--hidden");
+            // if (section === "weather"){
+            //     $.sections[section].tag.skycons.pause();
+            // }
+        });
+    };
 
 </script>
 

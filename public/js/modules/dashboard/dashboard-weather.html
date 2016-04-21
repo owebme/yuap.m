@@ -1,0 +1,87 @@
+<dashboard-weather class="section section__secondary section__header__nofixed">
+
+    <div id="dashboard__weather__scroll" class="section__wrapper">
+        <div class="section__container">
+            <header class="header__black">
+                <div class="header__title">Прогноз погоды</div>
+                <div class="header__left">
+                    <div onclickDelegate={ onClose } class="alarm__list__close header__icon header__icon__back"></div>
+                </div>
+                <div class="header__right">
+                    <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div>
+                </div>
+            </header>
+            <div class="dashboard__screen">
+                <div class="dashboard__screen__label">сейчас</div>
+                <div class="dashboard__screen__label dashboard__screen__label--left">Москва</div>
+                <div class="dashboard__screen__weather">
+                    <!-- <canvas id="partly-cloudy-day" class="dashboard__screen__weather__canvas"></canvas> -->
+                    <div class="dashboard__screen__weather__description">
+                        <div class="dashboard__screen__weather__temp">{ data.now.temp > 0 ? "+" + data.now.temp : data.now.temp }</div>
+                        <div class="dashboard__screen__weather__text">{ data.now.type }</div>
+                        <div class="dashboard__screen__weather__text">Влаж. { data.now.humidity }%</div>
+                        <div class="dashboard__screen__weather__text">{ data.now.pressure } мм рт.ст.</div>
+                    </div>
+                    <div class="dashboard__screen__weather__svg"></div>
+                </div>
+            </div>
+            <div class="dashboard__weather__week">
+                <div each={item in data.days} no-reorder class="dashboard__weather__week__item">
+                    <div class="dashboard__weather__week__title">{ getDate(item.date) }</div>
+                    <canvas id="dashboard__weather__week1" class="dashboard__weather__week__canvas"></canvas>
+                    <div class="dashboard__weather__week__temp">{ item.day > 0 ? "+" + item.day : item.day }</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.data = {};
+
+    this.on("mount", function(){
+
+        // $.skycons = new Skycons(
+        //     {"color": "#fff"},
+        //     {"resizeClear": true}
+        // );
+        // $.skycons.add("partly-cloudy-day", Skycons.PARTLY_CLOUDY_DAY);
+        // $.skycons.pause();
+
+        var skyconsWeek = new Skycons(
+            {"color": "#158ffe"},
+            {"resizeClear": true}
+        );
+        skyconsWeek.add("dashboard__weather__week1", Skycons.CLEAR_DAY);
+        // skyconsWeek.add("dashboard__weather__week2", Skycons.CLEAR_DAY);
+        // skyconsWeek.add("dashboard__weather__week3", Skycons.PARTLY_CLOUDY_DAY);
+        // skyconsWeek.add("dashboard__weather__week4", Skycons.PARTLY_CLOUDY_NIGHT);
+        // skyconsWeek.add("dashboard__weather__week5", Skycons.CLOUDY);
+
+        $.iScrollList = new IScroll($["dashboard__weather__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+    });
+
+    $.getDate = function(date){
+        return tempus(date).format('%d/%m');
+    };
+
+    // close section
+    $.onClose = function(e){
+        $dashboardList.closeSection("weather");
+    };
+
+</script>
+
+</dashboard-weather>

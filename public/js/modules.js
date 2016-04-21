@@ -1,3 +1,762 @@
+riot.tag2('alert-window', '<div class="alert__window__wrapper"> <div class="alert__window__header"> <div class="alert__window__title">{data.title}</div> <div if="{data.subtitle}" class="alert__window__subtitle"></div> <input if="{data.input}" type="text" class="alert__window__input" autocomplete="off" spellcheck="off"> </div> <div class="alert__window__buttons"> <div onclickdelegateupdate="{onCancel}" class="alert__window__button {alert__window__button--active : data.button === ⁗cancel⁗}">{data.cancel && data.cancel.title ? data.cancel.title : ⁗Отмена⁗}</div> <div onclickdelegateupdate="{onSuccess}" class="alert__window__button {alert__window__button--active : data.button === ⁗success⁗}">{data.success && data.success.title ? data.success.title : ⁗OK⁗}</div> </div> </div>', '', 'class="alert__window {alert__window--active : active}"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root);
+
+    $.active = false;
+
+    $.data = {
+        title: null,
+        subtitle: null
+    };
+
+    $.show = function(data){
+        if (data){
+            $.data = data;
+            $.active = true;
+            $.update();
+        }
+    };
+
+    $.onSuccess = function(){
+        if ($.data.success && typeof $.data.success.callback === "function"){
+            $.data.success.callback();
+        }
+        $.data.button = "success";
+        $.active = false;
+    };
+
+    $.onCancel = function(){
+        if ($.data.cancel && typeof $.data.cancel.callback === "function"){
+            $.data.cancel.callback();
+        }
+        $.data.button = "cancel";
+        $.active = false;
+    };
+
+});
+
+riot.tag2('chat-list-raw', '', '', '', function(opts) {
+  this.root.innerHTML = opts.content;
+});
+
+riot.tag2('chat-list', '<div class="section section__primary chat__list"> <header> <div class="header__title">iMessenger</div> <div class="header__left"> <div class="chat__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="chat__list__header__photo header__icon header__icon__avatar"> <div if="{lastClient.avatar}" class="header__icon__avatar__container"> <div riot-style="background-image:url({lastClient.avatar})" class="header__icon__avatar__image"></div> </div> <div if="{lastClient.id}" class="header__icon__avatar__status {lastClient.online ? \'header__icon__avatar__status--online\' : \'header__icon__avatar__status--offline\'}"></div> </div> </div> </header> <div id="chat__list__scroll" class="section__wrapper"> <div class="chat__list__container section__container"> <div onclickdelegate="{openRoom}" each="{user in users}" no-reorder class="chat__list__item"> <div class="chat__list__photo {chat__list__photo--avatar : user.avatar}"> <div if="{user.avatar}" riot-style="background-image:url({user.avatar})" class="chat__list__avatar"></div> </div> <div class="chat__list__status {user.online ? \'chat__list__status--online\' : \'chat__list__status--offline\'}"></div> <div class="chat__list__text"> <div class="chat__list__time">{user.joinTime}</div> <div class="chat__list__counts {chat__list__counts--active : user.newMessages}">{user.newMessages}</div> <div class="chat__list__title">{user.name ? user.name : \'Гость\'}</div> <div class="chat__list__message">{user.lastMessage ? user.lastMessage : \'С вами хотят пообщаться\'}</div> </div> </div> </div> </div> <div if="{!users.length}" class="chat__list__empty"><span class="chat__list__empty__text">Сейчас нет активных чатов</span></div> </div> <div class="section chat__body"> <div each="{user in users}" no-reorder id="chat__room__{user.id}" class="section section__secondary"> <header> <div class="header__title header__title__chat__room">{user.name ? user.name : \'Гость\'}</div> <div class="header__left"> <div class="chat__room__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="chat__header__photo header__icon header__icon__avatar"> <div if="{user.avatar}" class="header__icon__avatar__container"> <div riot-style="background-image:url({user.avatar})" class="header__icon__avatar__image"></div> </div> <div if="{user.id}" class="header__icon__avatar__status {user.online ? \'header__icon__avatar__status--online\' : \'header__icon__avatar__status--offline\'}"></div> </div> </div> </header> <div id="chat__room__scroll__{user.id}" class="section__wrapper"> <div class="section__container chat__room__container"> <div each="{message in user.messages}" no-reorder class="chat__message {message.me ? \'chat__message__left\' : \'chat__message__right\'}"> <div class="{message.me ? \'chat__message__que\' : \'chat__message__answer\'} {chat__message__system : message.type !== \'chat\'} {chat__message__system--active : message.type == \'auth\' && user.auth || message.type == \'phone\' && user.phone || message.type == \'email\' && user.email} {chat__message__new : message.new} chat__message__inner"> <chat-list-raw content="{message.text}">{message.text}</chat-list-raw> <div if="{message.type === \'auth\' && !user.auth}" class="chat__message__icon--auth"></div> <div if="{message.type === \'auth\' && user.auth}" class="chat__message__icon--checked"></div> <div if="{message.type === \'phone\'}" class="chat__message__icon--phone"></div> <div if="{message.type === \'email\'}" class="chat__message__icon--email"></div> </div> </div> </div> </div> <div class="chat__panel"> <div class="chat__panel__info"> <div class="chat__panel__info__typing {chat__panel__info__typing--active : client_id && client_id == typed_id}">Вам печатают сообщение...</div> </div> <div class="chat__panel__effect {chat__panel__effect--active : client_id && client_id == typed_id}"> <div class="chat__panel__effect__bar"></div> <div class="chat__panel__effect__dots {chat__panel__effect__dots--active : client_id && client_id == typed_id}"> <div class="chat__panel__effect__dot chat__panel__effect__dot1"></div> <div class="chat__panel__effect__dot chat__panel__effect__dot2"></div> <div class="chat__panel__effect__dot chat__panel__effect__dot3"></div> </div> </div> <form class="chat__panel__form"> <div class="chat__panel__menu"> <i class="chat__panel__menu__circle"></i> <select onchange="{changeOptions}" name="chat__select__options" class="chat__select__options"> <option value="1">Предложить представиться</option> <option value="2">Предложить оставить телефон</option> <option value="3">Предложить оставить email</option> <option value="4">Прикрепить картинку</option> </select> </div> <input onclickdelegate="{focusInput}" type="text" name="chat__panel__input" class="chat__panel__input" placeholder="Набрать сообщение..." autocomplete="off"> <div onclickdelegate="{sendMessage}" class="chat__panel__button"></div> </form> </div> </div> </div> <div each="{user in users}" no-reorder id="chat__metrika__{user.id}" class="section section__right section__right__not__fully section__header__without"> <div class="chat__metrika__close"></div> <div id="chat__metrika__wrapper__{user.id}" class="section__wrapper section__wrapper__metrika"> <div class="section__container"> <div class="chat__metrika__header"> <div class="chat__metrika__time">{user.joinTime}</div> <div class="chat__metrika__photo {user.online ? \'chat__metrika__photo--online\' : \'chat__metrika__photo--offline\'}"> <div if="{user.avatar}" class="chat__metrika__avatar" riot-style="background-image:url({user.avatar})"></div> </div> <div if="{user.profile.bdate}" class="chat__metrika__bdate">{user.profile.bdate}</div> <div class="chat__metrika__title">{user.name ? user.name : \'Гость\'}</div> </div> <div class="chat__metrika__content"> <div if="{user.phone}" class="chat__metrika__tile"> <div class="chat__metrika__tile__title">Телефон: <span class="chat__metrika__text__blue">{user.phone}</span></div> </div> <div class="chat__metrika__tile"> <div class="chat__metrika__tile__subtitle">По данным счетчика</div> <div class="chat__metrika__tile__text">{user.metrika.visit}-й раз на сайте, {user.metrika.city}</div> </div> <div if="{user.metrika.start}" class="chat__metrika__tile"> <div class="chat__metrika__tile__subtitle">Страница входа</div> <div class="chat__metrika__tile__text"><a class="chat__metrika__link" href="{user.metrika.start}" target="_blank">{user.metrika.start}</a></div> </div> <div class="chat__metrika__tile"> <div class="chat__metrika__tile__subtitle">На сайт перешли {user.metrika.adv ? \'по рекламе\' : \'с\'}</div> <div class="chat__metrika__tile__text"> {⁗Яндекс.Директ⁗ : user.metrika.adv && user.metrika.referer === ⁗yandex⁗} {⁗Яндекс.Поиск⁗ : !user.metrika.adv && user.metrika.referer === ⁗yandex⁗} {⁗Google.Adwords⁗ : user.metrika.adv && user.metrika.referer === ⁗google⁗} {⁗Google.Поиск⁗ : !user.metrika.adv && user.metrika.referer === ⁗google⁗} {⁗Rambler.Поиск⁗ : user.metrika.referer === ⁗rambler⁗} {⁗Yahoo.Поиск⁗ : user.metrika.referer === ⁗yahoo⁗} {⁗Bing.Поиск⁗ : user.metrika.referer === ⁗bing⁗} {⁗Mail.ru.Поиск⁗ : user.metrika.referer === ⁗mail⁗} <virtual if="{user.metrika.referer && user.metrika.referer.match(/http/)}"> {user.metrika.referer} </virtual> <virtual if="{user.metrika.keyword}">, {user.metrika.keyword}</virtual> </div> </div> <div if="{user.metrika.pages}" class="chat__metrika__tile"> <div class="chat__metrika__tile__title">Посещено: {user.metrika.pages} страниц(ы)</div> <div class="chat__metrika__pages__container"> <div each="{link in user.metrika.pagesData}" no-reorder class="chat__metrika__tile"> <a class="chat__metrika__link" target="_blank" href="{link}">{link}</a> </div> </div> </div> </div> </div> </div> </div> <svg style="position:absolute" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <filter id="goo"> <fegaussianblur in="SourceGraphic" stddeviation="10" result="blur"></fegaussianblur> <fecolormatrix in="blur" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 19 -9" result="goo"></fecolormatrix> <fecomposite in="SourceGraphic" in2="goo"></fecomposite> </filter> </defs> </svg>', '', 'data-marquee="chat" class="section section__marquee"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root);
+
+    $.sid = 777;
+    $.users = [];
+    $.activity = false;
+    $.ready = false;
+    $.socket_id = null;
+    $.user_id = sessionStorage.chat_uid || new Date().getTime() + (Math.round(Math.random() * 10000));
+    $.lastClient = sessionStorage.chat_client && JSON.parse(sessionStorage.chat_client) || {};
+    $.client_id = null;
+    $.timeOutTyped = null;
+    $.typed_id = null;
+    $.iScrollList = null;
+    $.iScrollRoom = {};
+    $.iScrollMetrika = {};
+    $.socket = io.connect('http://5.101.124.21:8008', {
+		reconnection: false
+	});
+    $.reconnectInterval = null;
+
+    if (!sessionStorage.chat_uid) sessionStorage.chat_uid = $.user_id;
+
+    this.on("mount", function(){
+
+        setTimeout(function(){
+            if (!$.socket.connected){
+                $.reconnect();
+                console.log('Chat: невозможно подключиться к серверу!');
+            }
+        }, 1000);
+
+        $.socket.on('connect', function(){
+            console.log('Chat: соединение установленно!');
+            clearInterval($.reconnectInterval);
+            $.reconnectInterval = null;
+            $.ready = true;
+            $.socket_id = this.id;
+            $.socket.emit("join", {
+                id: $.user_id,
+                sid: $.sid,
+                admin: true
+            });
+        });
+
+        var $chat_list = $$($scope.children()[0]),
+            $chat_body = $$($scope.children()[1]);
+
+        $scope.find(".chat__list__close").on(clickEvent, function(){
+            app.sections.nav("data-list");
+            app.iScrollDataList.refresh();
+        });
+
+        $.openRoom = function(e){
+            var $elem = $$(e.currentTarget),
+                id = this._item.user.id;
+
+            var $room = $$($["chat__room__" + id]);
+
+            try {
+                $elem.addClass("chat__list__item--active").siblings().removeClass("chat__list__item--active");
+            } catch(e){}
+            $room.addClass("section--show");
+            $chat_list.addClass("section--hidden");
+
+            $.client_id = id;
+            $.scrollDown();
+
+            app.utils.onEndAnimation($["chat__room__" + id], function(){
+                $.activity = true;
+                $room.addClass("section--active").removeClass("section--show");
+                $.users.forEach(function(item, i) {
+                    if ($.lastClient && $.lastClient.id !== id || !$.lastClient && item.id == id){
+                        $.lastClient = {
+                            id: item.id,
+                            avatar: item.avatar,
+                            online: item.online
+                        };
+                        sessionStorage.chat_client = JSON.stringify($.lastClient);
+                        $.update();
+                    }
+                });
+                $.viewedList();
+            });
+        };
+
+        $chat_body.on(clickEvent, ".chat__room__close", function(){
+
+            var $room = $$($["chat__room__" + $.client_id]);
+
+            $room.addClass("section--hidden");
+            $chat_list.removeClass("section--hidden");
+
+            app.utils.onEndAnimation($["chat__room__" + $.client_id], function(){
+                $.client_id = null;
+                $.activity = false;
+                $room.removeClass("section--active").removeClass("section--hidden");
+                $.update();
+            });
+        });
+
+        $scope.find(".chat__list__header__photo").on(clickEvent, function(){
+            if ($.lastClient && $.lastClient.id) {
+                var $metrika = $$($["chat__metrika__" + $.lastClient.id]);
+                $metrika.addClass("section--show");
+            }
+        });
+
+        $chat_body.on(clickEvent, ".chat__header__photo", function(){
+            if ($.client_id) {
+                var $metrika = $$($["chat__metrika__" + $.client_id]);
+                $metrika.addClass("section--show");
+            }
+        });
+
+        $scope.on(clickEvent, ".chat__metrika__close", function(){
+            if ($.lastClient && $.lastClient.id) {
+                var $metrika = $$($["chat__metrika__" + $.lastClient.id]);
+                $metrika.removeClass("section--show");
+            }
+        });
+    });
+
+    $.socket.on("update_" + $.sid, function(data){
+        if ($.ready) {
+
+            $.users = data;
+            $.typed_id = null;
+            if ($.activity){
+                $.users.forEach(function(item, i) {
+                    if (item.id == $.client_id){
+                        var j = item.messages.length - 1;
+                        $.users[i].messages[j].new = true;
+                    }
+                });
+            }
+            $.update();
+             if ($.client_id){
+                if (!$.users.length){
+                    $.client_id = null;
+                    $.lastClient = null;
+                    sessionStorage.chat_client = null;
+                    $.update();
+                }
+                else {
+                    $.iScrollRoom[$.client_id].refresh();
+                    $.iScrollRoom[$.client_id].scrollTo(0, $.iScrollRoom[$.client_id].maxScrollY, 400, IScroll.utils.ease.cubicOut);
+                }
+
+            }
+
+            else if (!$.client_id){
+                if ($.users.length && $.lastClient) {
+                    var avail = false;
+                    $.users.forEach(function(item, i) {
+                        if ($.lastClient.id === item.id) avail = true;
+                    });
+                    if (!avail){
+                        $.lastClient = null;
+                        sessionStorage.chat_client = null;
+                        $.update();
+                    }
+                }
+                else {
+                    $.lastClient = null;
+                    sessionStorage.chat_client = null;
+                    $.update();
+                }
+            }
+            $.scrollContent($.users);
+            clearTimeout($.timeOutTyped);
+            if ($.activity){
+                app.utils.onEndAnimation($["chat__room__" + $.client_id].querySelector(".chat__message__new"), function(){
+                    setTimeout(function(){
+                        $.users.forEach(function(item, i) {
+                            if (item.id == $.client_id){
+                                var j = item.messages.length - 1;
+                                $.users[i].messages[j].new = false;
+                            }
+                        });
+                        $.update();
+                    }, 300);
+                });
+            }
+        }
+    });
+
+    $.socket.on("notify_" + $.sid, function(id){
+        if ($.activity && $.client_id === id){
+            $.viewedList();
+        }
+    });
+
+    $.socket.on("update_offer" + $.sid, function(type){
+        $.tags["chat-list-raw"].forEach(function(item, i) {
+            if (item.message.type === type || item.message.type === "auth" && (type === "name" || type === "profile")){
+                var text = item.message.text;
+                item.root.innerHTML = text;
+            }
+        });
+    });
+
+    $.socket.on("typed_" + $.sid, function(id){
+        if ($.ready && $.client_id === id) {
+            clearTimeout($.timeOutTyped);
+            $.typed_id = id;
+            $.update();
+            $.timeOutTyped = setTimeout(function(){
+                $.typed_id = null;
+                $.update();
+            }, 5000);
+        }
+    });
+
+    $.socket.on('disconnect', function() {
+        $.reconnect();
+        console.log('Chat: соединение потеряно!');
+        $.users = [];
+        $.update();
+    });
+
+    $.reconnect = function(){
+        if ($.reconnectInterval) return;
+        $.reconnectInterval = setInterval(function(){
+            $.socket.connect();
+        }, 500);
+        console.log('Chat: запуск реконнекта!');
+    };
+
+    $.scrollContent = function(users){
+        if (!$.iScrollList){
+            $.iScrollList = new IScroll($["chat__list__scroll"], {
+                scrollX: false,
+                scrollY: true,
+                mouseWheel: true
+            });
+        }
+        users.forEach(function(item, i) {
+            if (!$.iScrollRoom[item.id]){
+                $.iScrollRoom[item.id] = new IScroll($["chat__room__scroll__" + item.id], {
+            		scrollX: false,
+            		scrollY: true,
+                    mouseWheel: true
+            	});
+                $.iScrollRoom[item.id].scrollTo(0, $.iScrollRoom[item.id].maxScrollY);
+
+                $.iScrollMetrika[item.id] = new IScroll($["chat__metrika__wrapper__" + item.id], {
+            		scrollX: false,
+            		scrollY: true,
+                    mouseWheel: true
+            	});
+
+                (function animationLoopRoom(){
+            		app.utils.raf(animationLoopRoom);
+            		app.utils.getScroll($.iScrollRoom[item.id]);
+            	})();
+
+                (function animationLoopMetrika(){
+            		app.utils.raf(animationLoopMetrika);
+            		app.utils.getScroll($.iScrollMetrika[item.id]);
+            	})();
+
+                $["chat__room__scroll__" + item.id].addEventListener("touchstart", function(e){
+                    $["chat__room__" + item.id].querySelector(".chat__panel__input").blur();
+                });
+            }
+        });
+    };
+
+    $.scrollDown = function(slow){
+        if (!$.client_id || !$.iScrollRoom[$.client_id]) return;
+        $.iScrollRoom[$.client_id].refresh();
+        $.iScrollRoom[$.client_id].scrollTo(0, $.iScrollRoom[$.client_id].maxScrollY);
+    };
+
+    $.focusInput = function(){
+        setTimeout(function(){
+            $.socket.emit("typed", $.client_id);
+        }, app.device.isMobile ? 400 : 0);
+    };
+
+    $.sendMessage = function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        var text = this.chat__panel__input.value;
+        if (text.length){
+            this.chat__panel__input.value = "";
+            this.chat__panel__input.blur();
+
+            setTimeout(function(){
+                $.socket.emit("send", {
+                    id: $.client_id,
+                    message: text
+                });
+            }, app.device.isMobile ? 400 : 0);
+        }
+    };
+
+    $.changeOptions = function(e){
+        var value = e.target.value;
+        if (value === "1"){
+            $.socket.emit("send", {
+                id: $.client_id,
+                type: "auth",
+                message: "Предложение представиться"
+            });
+        }
+        else if (value === "2"){
+            $.socket.emit("send", {
+                id: $.client_id,
+                type: "phone",
+                message: "Предложение оставить телефон"
+            });
+        }
+        else if (value === "3"){
+            $.socket.emit("send", {
+                id: $.client_id,
+                type: "email",
+                message: "Предложение оставить email"
+            });
+        }
+    };
+
+    $.viewedList = function(){
+        var avail = false;
+        $.users.forEach(function(item, i) {
+            if (item.id === $.client_id && $.users[i].newMessages > 0) {
+                $.users[i].newMessages = 0;
+                $.users[i].messages.forEach(function(message, j) {
+                    message.viewed = true;
+                });
+                $.socket.emit("viewed", i);
+                avail = true;
+            }
+        });
+        if (avail) $.update();
+    };
+
+});
+
+riot.tag2('login-section', '<div class="login__section__logo"></div> <div class="login__section__form"> <div class="login__section__item login__section__item--login"> <div class="login__section__item__title">логин</div> <div class="login__section__item__circle login__section__item__circle--login"></div> <input class="login__section__input" name="login" type="text" placeholder="логин" spellcheck="false" autocomplete="off"> </div> <div class="login__section__item login__section__item--pass"> <div class="login__section__item__circle login__section__item__circle--pass"></div> <div class="login__section__item__title">пароль</div> <input class="login__section__input" name="password" type="text" placeholder="пароль" spellcheck="false" autocomplete="off"> </div> </div> <div class="login__section__footer"> <div class="login__section__button">Войти</div> </div>', '', 'class="login__section"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root);
+
+    this.on("mount", function(){
+
+        $scope.find(".login__section__item__circle").on("click", function(){
+            $scope.addClass("login__section--input");
+            $scope.find(".login__section__input[name=login]").focus();
+        });
+
+        $scope.find(".login__section__input").on("focus blur", function(e){
+            if (e.type === "focus"){
+                $scope.addClass("login__section--focus");
+            }
+            else if (e.type === "blur"){
+                $scope.removeClass("login__section--focus");
+            }
+        });
+
+        $scope.find(".login__section__button").on("click", function(e){
+            $scope.addClass("login__section--loading");
+            setTimeout(function(){
+                $scope.addClass("login__section--enter");
+            }, 1500);
+        });
+
+    });
+
+});
+
+riot.tag2('popup-select', '<div class="popup__select__wrapper"> <div if="{type === ⁗status⁗}" class="popup__select__container"> <div onclickdelegateupdateall="{onSelect}" each="{items}" no-reorder class="popup__select__item {popup__select__item--active : _id == value}"> <div class="popup__select__status__color popup__select__status__{color}"> <span class="popup__select__item__title">{title}</span> </div> </div> </div> <div if="{type === ⁗status⁗ && icon.type}" class="popup__select__status__icon"> <div if="{icon.type !== ⁗profile⁗}" class="popup__select__status__icon__item popup__select__status__icon__item--{icon.type}"></div> <div if="{icon.type === ⁗profile⁗}" class="popup__select__status__icon__item" riot-style="background-image:url({icon.image})"></div> </div> <div if="{!type}" class="popup__select__container"> <div onclickdelegateupdateall="{onSelect}" each="{items}" no-reorder class="popup__select__item"> <span class="popup__select__item__title">{title}</span> </div> </div> </div>', '', 'class="popup__select {popup__select--active : active}"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root);
+
+    $.active = false;
+
+    $.items = {};
+
+    $.show = function(data){
+        if (data){
+            $.type = data.type;
+            $.icon = data.icon;
+            $.items = data.data;
+            $.value = data.value;
+            $.callback = data.callback;
+            $.active = true;
+            $.update();
+        }
+    };
+
+    $.onSelect = function(){
+        var id = this._id;
+        $.value = id;
+        $.active = false;
+        if ($.callback) $.callback(id);
+    };
+
+    this.on("mount", function(){
+
+        $scope.on(clickEvent, function(e){
+            if (e.target.getAttribute("class") && e.target.getAttribute("class").match(/popup__select--active/)){
+                $.active = false;
+                $.update();
+            }
+        });
+
+    });
+
+});
+
+riot.tag2('root-section', '<section id="sections"> <dashboard-section></dashboard-section> <data-section></data-section> </section> <popup-select></popup-select> <alert-window></alert-window> <alarm-section></alarm-section>', '', 'id="root"', function(opts) {
+
+    $root = this;
+
+    this.on("mount", function(){
+        app.sections.init("dashboard");
+    });
+
+});
+
+riot.tag2('dashboard-balance', '<div id="dashboard__balance__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Ваш баланс</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right dashboard__balance__days"> 28 дн </div> </header> <div class="dashboard__screen"> <div class="dashboard__balance__label">остаток</div> <div id="dashboard__balance__big" class="dashboard__screen__circle"></div> </div> <div class="dashboard__balance__button">Пополнить баланс</div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="c-gray">12 мар 2016</div> <div class="t-right"><strong>1 250,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">7 мар 2016</div> <div class="t-right"><strong>3 480,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">5 мар 2016</div> <div class="t-right"><strong>900,0 Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("balance");
+    };
+
+    this.on("mount", function(){
+
+        $scope.find("#dashboard__balance__big").circliful({
+            foregroundColor: "#68f5ff",
+            foregroundBorderWidth: 8.5,
+            backgroundBorderWidth: 8.5,
+            showPercent: false,
+            percent: 88,
+            textFamily: "roboto",
+            textSize: "25px",
+            target: "4 750,0"
+        });
+
+        $.iScrollList = new IScroll($["dashboard__balance__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+    });
+
+});
+
+riot.tag2('dashboard-currency', '<div id="dashboard__currency__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Курсы валют</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen dashboard__screen--currency"> <div class="dashboard__screen__label">cегодня</div> <div class="dashboard__screen__label dashboard__screen__label--left">ЦБ РФ</div> <div class="dashboard__screen__currency dashboard__screen__currency--line"> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{data.get(⁗usd⁗)} <span class="dashboard__screen__currency__rub">Р</span></div> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">$</div> </div> <div class="dashboard__screen__currency"> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">&euro;</div> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{data.get(⁗euro⁗)} <span class="dashboard__screen__currency__rub">Р</span></div> </div> </div> <div class="dashboard__table"> <div each="{item in data.get(⁗items⁗)}" no-reorder class="dashboard__table__row"> <div class="dashboard__table__string c-gray">{item.title}</div> <div class="t-right"><strong>{item.value} Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.data = new Baobab({
+        usd: null,
+        euro: null,
+        items: []
+    });
+
+    this.on("mount", function(){
+
+        $.iScrollList = new IScroll($["dashboard__currency__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+    });
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("currency");
+    };
+
+});
+
+riot.tag2('dashboard-list', '<div id="dashboard__scroll" class="section__wrapper"> <div class="section__container section__container__dashboard"> <header class="header__dashboard"> <div class="header__title">Инфо-панель</div> <div class="header__left"> <div class="dashboard__openMenu header__icon UI__menu"><div class="UI__menu__item"></div></div> </div> <div class="header__right"> <div onclickdelegate="{openDataList}" class="dashboard__next__section header__icon header__icon__next__white"></div> </div> </header> <div onclickdelegate="{openBalance}" class="dashboard__tile dashboard__tile__balance"> <div class="dashboard__tile__label">пополнить</div> <div id="dashboard__balance" class="dashboard__circle"></div> <div class="dashboard__title"> <div class="dashboard__subtitle">Ваш баланс:</div> <div class="dashboard__balance">4 750,0 <span class="dashboard__balance__rub">Р</span></div> </div> </div> <div onclickdelegate="{openTraffic}" class="dashboard__tile dashboard__tile__traffic"> <div class="dashboard__tile__label">подробнее</div> <div id="dashboard__traffic__score" class="dashboard__circle"></div> <div class="dashboard__title">Входящие</div> </div> <div class="dashboard__tile"> <span id="dashboard__traffic__graph">5,3,9,6,5,9,7,3,5,2</span> </div> <div onclickdelegate="{openWeather}" class="dashboard__tile dashboard__tile__weather"> <div class="dashboard__tile__label">сегодня</div> <canvas id="partly-cloudy-night" class="dashboard__weather__canvas"></canvas> <div class="dashboard__weather"> <div class="dashboard__weather__temp">{data.weather.day > 0 ? ⁗+⁗ + data.weather.day : data.weather.day}...<span class="dashboard__weather__temp__to">{data.weather.night > 0 ? ⁗+⁗ + data.weather.night : data.weather.night}</span></div> <div class="dashboard__weather__text">{data.weather.type}</div> <div class="dashboard__weather__text">{data.weather.humidity}% / {data.weather.pressure} мм рт.с.</div> </div> </div> <div onclickdelegate="{openCurrency}" class="dashboard__tile dashboard__tile__currency"> <div class="dashboard__currency"> <div class="dashboard__currency__title">$</div> <div class="dashboard__currency__value">{data.currency.usd}</div> </div> <div class="dashboard__currency"> <div class="dashboard__currency__title">&euro;</div> <div class="dashboard__currency__value">{data.currency.euro}</div> </div> </div> </div> </div>', '', 'class="section section__primary"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $section = $$($.parent.root);
+
+    $.data = {
+        weather: {},
+        currency: {}
+    };
+
+    this.on("mount", function(){
+
+        $fetch('dashboard/init', "get").then(function(data){
+
+            var $weather = $.sections["weather"].tag,
+                $currency = $.sections["currency"].tag.data;
+
+            $weather.data = data.weather;
+            $.data.weather = data.weather.now;
+
+            $currency.set('items', data.currency);
+            var usd = $currency.get('items', {'code': 'USD'}, 'value'),
+                euro = $currency.get('items', {'code': 'EUR'}, 'value');
+
+            $currency.set('usd', String(usd).replace(/\./g, ','));
+            $currency.set('euro', String(euro).replace(/\./g, ','));
+
+            $.data.currency = {
+                usd: String(parseFloat(usd).toFixed(2)).replace(/\./g, ','),
+                euro: String(parseFloat(euro).toFixed(2)).replace(/\./g, ',')
+            };
+
+            $.update();
+            $.sections["weather"].tag.update();
+            $.sections["currency"].tag.update();
+            $.sections["currency"].tag.iScrollList.refresh();
+        });
+
+        $.sections = {
+            balance: {
+                tag: $.parent.tags["dashboard-balance"],
+                section: $$($.parent.tags["dashboard-balance"].root)
+            },
+            traffic: {
+                tag: $.parent.tags["dashboard-traffic"],
+                section: $$($.parent.tags["dashboard-traffic"].root)
+            },
+            weather: {
+                tag: $.parent.tags["dashboard-weather"],
+                section: $$($.parent.tags["dashboard-weather"].root)
+            },
+            currency: {
+                tag: $.parent.tags["dashboard-currency"],
+                section: $$($.parent.tags["dashboard-currency"].root)
+            }
+        };
+
+        $scope.find("#dashboard__balance").circliful({
+            foregroundColor: "#68f5ff",
+            backgroundColor: "#f0f4fb",
+            textColor: "#333947",
+            foregroundBorderWidth: 10,
+            backgroundBorderWidth: 10,
+            percent: 88
+        });
+
+        $scope.find("#dashboard__traffic__score").circliful({
+            foregroundColor: "#fcde30",
+            backgroundColor: "#f0f4fb",
+            textColor: "#333947",
+            foregroundBorderWidth: 10,
+            backgroundBorderWidth: 10,
+            textSize: "35px",
+            showPercent: false,
+            percent: 54,
+            target: 12
+        });
+
+        $scope.find("#dashboard__traffic__graph").peity("bar", {
+            fill: ["#839ae3", "#62e1d8"],
+            width: "100%",
+            height: "100px"
+        });
+
+        if (typeof Skycons !== 'undefined'){
+            var skycons = new Skycons(
+                {"color": "#839ae3"},
+                {"resizeClear": true}
+            );
+            skycons.add("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
+            skycons.play();
+        };
+
+        $.iScrollList = new IScroll($["dashboard__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+        app.iScrollDashboardList = $.iScrollList;
+
+    });
+
+    $.openDataList = function(e){
+        app.sections.nav("data");
+    };
+
+    $.openBalance = function(e){
+        $.openSection("balance");
+    };
+
+    $.openTraffic = function(e){
+        $.openSection("traffic");
+    };
+
+    $.openWeather = function(e){
+        $.openSection("weather");
+    };
+
+    $.openCurrency = function(e){
+        $.openSection("currency");
+    };
+
+    $.openSection = function(section){
+        $.sections[section].section.addClass("section--show");
+        $scope.addClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.addClass("section--active").removeClass("section--show");
+            $.sections[section].tag.iScrollList.refresh();
+
+        });
+    };
+
+    $.closeSection = function(section){
+        $.sections[section].section.addClass("section--hidden");
+        $scope.removeClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.removeClass("section--active").removeClass("section--hidden");
+
+        });
+    };
+
+});
+
+riot.tag2('dashboard-section', '<dashboard-list></dashboard-list> <dashboard-balance></dashboard-balance> <dashboard-traffic></dashboard-traffic> <dashboard-weather></dashboard-weather> <dashboard-currency></dashboard-currency>', '', 'data-marquee="dashboard" class="section section__marquee section__header__nofixed"', function(opts) {
+});
+
+riot.tag2('dashboard-traffic', '<div id="dashboard__traffic__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Статистика входящих</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">cегодня</div> <span id="dashboard__traffic__big">5,3,9,6</span> </div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#00d1fe"></span>Обратные звонки</div> <div class="w-15p t-center c-gray">12%</div> <div class="w-15p t-center"><strong>3</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ffe02d"></span>Онлайн-чаты</div> <div class="w-15p t-center c-gray">24%</div> <div class="w-15p t-center"><strong>5</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#b77de9"></span>Сообщения</div> <div class="w-15p t-center c-gray">27%</div> <div class="w-15p t-center"><strong>6</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ff9498"></span>Заявки</div> <div class="w-15p t-center c-gray">18%</div> <div class="w-15p t-center"><strong>4</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("traffic");
+    };
+
+    this.on("mount", function(){
+
+        $$($["dashboard__traffic__big"]).peity("donut", {
+
+            fill: ["#00d1fe", "#ffe02d", "#b77de9", "#ff9498"],
+            width: 176,
+            height: 176
+        });
+
+        $.iScrollList = new IScroll($["dashboard__traffic__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+    });
+
+});
+
+riot.tag2('dashboard-weather', '<div id="dashboard__weather__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Прогноз погоды</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">сейчас</div> <div class="dashboard__screen__label dashboard__screen__label--left">Москва</div> <div class="dashboard__screen__weather"> <div class="dashboard__screen__weather__description"> <div class="dashboard__screen__weather__temp">{data.now.temp > 0 ? ⁗+⁗ + data.now.temp : data.now.temp}</div> <div class="dashboard__screen__weather__text">{data.now.type}</div> <div class="dashboard__screen__weather__text">Влаж. {data.now.humidity}%</div> <div class="dashboard__screen__weather__text">{data.now.pressure} мм рт.ст.</div> </div> <div class="dashboard__screen__weather__svg"></div> </div> </div> <div class="dashboard__weather__week"> <div each="{item in data.days}" no-reorder class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">{getDate(item.date)}</div> <canvas id="dashboard__weather__week1" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">{item.day > 0 ? ⁗+⁗ + item.day : item.day}</div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.data = {};
+
+    this.on("mount", function(){
+
+        var skyconsWeek = new Skycons(
+            {"color": "#158ffe"},
+            {"resizeClear": true}
+        );
+        skyconsWeek.add("dashboard__weather__week1", Skycons.CLEAR_DAY);
+
+        $.iScrollList = new IScroll($["dashboard__weather__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+    });
+
+    $.getDate = function(date){
+        return tempus(date).format('%d/%m');
+    };
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("weather");
+    };
+
+});
+
 riot.tag2('alarm-list', '<div class="section__container"> <header class="header__black"> <div class="header__title">iCalendar</div> <div class="header__left"> <div class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="alarm__list__icon__add header__icon"></div> </div> </header> <div each="{item in data}" no-reorder class="alarm__list__item alarm__list__item{utils.getBetweenDay(item.date)} {alarm__list__item--off : !item.active}"> <div onclickdelegateupdate="{switchAlarm}" class="alarm__list__item__switch"></div> <div onclickdelegate="{openAlarm}" riot-item=".alarm__settings" riot-addclass="section--show" class="alarm__list__time"><span class="alarm__list__hour">{utils.getHours(item.time)}</span>:{utils.getMinutes(item.time)}</div> <div onclickdelegate="{openPhone}" riot-item=".alarm__settings" riot-addclass="section--show" class="alarm__list__text"> <div if="{item.phone}" class="alarm__list__phone">{item.phone}</div> <div class="alarm__list__when"><strong class="alarm__list__strong">{utils.getDate(item.date)}</strong><virtual if="{item.name}">, {item.name}</virtual></div> </div> <div class="alarm__list__days"> <div class="alarm__list__days__item {alarm__list__days__item--active : utils.dayOfWeek(item.date) === ⁗Пн⁗}">Пн</div> <div class="alarm__list__days__item {alarm__list__days__item--active : utils.dayOfWeek(item.date) === ⁗Вт⁗}">Вт</div> <div class="alarm__list__days__item {alarm__list__days__item--active : utils.dayOfWeek(item.date) === ⁗Ср⁗}">Ср</div> <div class="alarm__list__days__item {alarm__list__days__item--active : utils.dayOfWeek(item.date) === ⁗Чт⁗}">Чт</div> <div class="alarm__list__days__item {alarm__list__days__item--active : utils.dayOfWeek(item.date) === ⁗Пт⁗}">Пт</div> <div class="alarm__list__days__item {alarm__list__days__item--active : utils.dayOfWeek(item.date) === ⁗Сб⁗}">Сб</div> <div class="alarm__list__days__item {alarm__list__days__item--active : utils.dayOfWeek(item.date) === ⁗Вс⁗}">Вс</div> </div> <div onclickdelegate="{removeAlarm}" class="alarm__list__item__remove"></div> </div> </div> <div if="{!data.length}" class="section__wrapper__alarm__empty"> <div class="section__wrapper__alarm__empty__text">Сейчас нет активных напоминаний</div> </div>', '', 'id="alarm__list__scroll" class="section__wrapper section__wrapper__alarm"', function(opts) {
 
     var $ = this,
@@ -610,645 +1369,6 @@ console.log("scrollEnd");
 
 });
 
-riot.tag2('alert-window', '<div class="alert__window__wrapper"> <div class="alert__window__header"> <div class="alert__window__title">{data.title}</div> <div if="{data.subtitle}" class="alert__window__subtitle"></div> <input if="{data.input}" type="text" class="alert__window__input" autocomplete="off" spellcheck="off"> </div> <div class="alert__window__buttons"> <div onclickdelegateupdate="{onCancel}" class="alert__window__button {alert__window__button--active : data.button === ⁗cancel⁗}">{data.cancel && data.cancel.title ? data.cancel.title : ⁗Отмена⁗}</div> <div onclickdelegateupdate="{onSuccess}" class="alert__window__button {alert__window__button--active : data.button === ⁗success⁗}">{data.success && data.success.title ? data.success.title : ⁗OK⁗}</div> </div> </div>', '', 'class="alert__window {alert__window--active : active}"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root);
-
-    $.active = false;
-
-    $.data = {
-        title: null,
-        subtitle: null
-    };
-
-    $.show = function(data){
-        if (data){
-            $.data = data;
-            $.active = true;
-            $.update();
-        }
-    };
-
-    $.onSuccess = function(){
-        if ($.data.success && typeof $.data.success.callback === "function"){
-            $.data.success.callback();
-        }
-        $.data.button = "success";
-        $.active = false;
-    };
-
-    $.onCancel = function(){
-        if ($.data.cancel && typeof $.data.cancel.callback === "function"){
-            $.data.cancel.callback();
-        }
-        $.data.button = "cancel";
-        $.active = false;
-    };
-
-});
-
-riot.tag2('chat-list-raw', '', '', '', function(opts) {
-  this.root.innerHTML = opts.content;
-});
-
-riot.tag2('chat-list', '<div class="section section__primary chat__list"> <header> <div class="header__title">iMessenger</div> <div class="header__left"> <div class="chat__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="chat__list__header__photo header__icon header__icon__avatar"> <div if="{lastClient.avatar}" class="header__icon__avatar__container"> <div riot-style="background-image:url({lastClient.avatar})" class="header__icon__avatar__image"></div> </div> <div if="{lastClient.id}" class="header__icon__avatar__status {lastClient.online ? \'header__icon__avatar__status--online\' : \'header__icon__avatar__status--offline\'}"></div> </div> </div> </header> <div id="chat__list__scroll" class="section__wrapper"> <div class="chat__list__container section__container"> <div onclickdelegate="{openRoom}" each="{user in users}" no-reorder class="chat__list__item"> <div class="chat__list__photo {chat__list__photo--avatar : user.avatar}"> <div if="{user.avatar}" riot-style="background-image:url({user.avatar})" class="chat__list__avatar"></div> </div> <div class="chat__list__status {user.online ? \'chat__list__status--online\' : \'chat__list__status--offline\'}"></div> <div class="chat__list__text"> <div class="chat__list__time">{user.joinTime}</div> <div class="chat__list__counts {chat__list__counts--active : user.newMessages}">{user.newMessages}</div> <div class="chat__list__title">{user.name ? user.name : \'Гость\'}</div> <div class="chat__list__message">{user.lastMessage ? user.lastMessage : \'С вами хотят пообщаться\'}</div> </div> </div> </div> </div> <div if="{!users.length}" class="chat__list__empty"><span class="chat__list__empty__text">Сейчас нет активных чатов</span></div> </div> <div class="section chat__body"> <div each="{user in users}" no-reorder id="chat__room__{user.id}" class="section section__secondary"> <header> <div class="header__title header__title__chat__room">{user.name ? user.name : \'Гость\'}</div> <div class="header__left"> <div class="chat__room__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="chat__header__photo header__icon header__icon__avatar"> <div if="{user.avatar}" class="header__icon__avatar__container"> <div riot-style="background-image:url({user.avatar})" class="header__icon__avatar__image"></div> </div> <div if="{user.id}" class="header__icon__avatar__status {user.online ? \'header__icon__avatar__status--online\' : \'header__icon__avatar__status--offline\'}"></div> </div> </div> </header> <div id="chat__room__scroll__{user.id}" class="section__wrapper"> <div class="section__container chat__room__container"> <div each="{message in user.messages}" no-reorder class="chat__message {message.me ? \'chat__message__left\' : \'chat__message__right\'}"> <div class="{message.me ? \'chat__message__que\' : \'chat__message__answer\'} {chat__message__system : message.type !== \'chat\'} {chat__message__system--active : message.type == \'auth\' && user.auth || message.type == \'phone\' && user.phone || message.type == \'email\' && user.email} {chat__message__new : message.new} chat__message__inner"> <chat-list-raw content="{message.text}">{message.text}</chat-list-raw> <div if="{message.type === \'auth\' && !user.auth}" class="chat__message__icon--auth"></div> <div if="{message.type === \'auth\' && user.auth}" class="chat__message__icon--checked"></div> <div if="{message.type === \'phone\'}" class="chat__message__icon--phone"></div> <div if="{message.type === \'email\'}" class="chat__message__icon--email"></div> </div> </div> </div> </div> <div class="chat__panel"> <div class="chat__panel__info"> <div class="chat__panel__info__typing {chat__panel__info__typing--active : client_id && client_id == typed_id}">Вам печатают сообщение...</div> </div> <div class="chat__panel__effect {chat__panel__effect--active : client_id && client_id == typed_id}"> <div class="chat__panel__effect__bar"></div> <div class="chat__panel__effect__dots {chat__panel__effect__dots--active : client_id && client_id == typed_id}"> <div class="chat__panel__effect__dot chat__panel__effect__dot1"></div> <div class="chat__panel__effect__dot chat__panel__effect__dot2"></div> <div class="chat__panel__effect__dot chat__panel__effect__dot3"></div> </div> </div> <form class="chat__panel__form"> <div class="chat__panel__menu"> <i class="chat__panel__menu__circle"></i> <select onchange="{changeOptions}" name="chat__select__options" class="chat__select__options"> <option value="1">Предложить представиться</option> <option value="2">Предложить оставить телефон</option> <option value="3">Предложить оставить email</option> <option value="4">Прикрепить картинку</option> </select> </div> <input onclickdelegate="{focusInput}" type="text" name="chat__panel__input" class="chat__panel__input" placeholder="Набрать сообщение..." autocomplete="off"> <div onclickdelegate="{sendMessage}" class="chat__panel__button"></div> </form> </div> </div> </div> <div each="{user in users}" no-reorder id="chat__metrika__{user.id}" class="section section__right section__right__not__fully section__header__without"> <div class="chat__metrika__close"></div> <div id="chat__metrika__wrapper__{user.id}" class="section__wrapper section__wrapper__metrika"> <div class="section__container"> <div class="chat__metrika__header"> <div class="chat__metrika__time">{user.joinTime}</div> <div class="chat__metrika__photo {user.online ? \'chat__metrika__photo--online\' : \'chat__metrika__photo--offline\'}"> <div if="{user.avatar}" class="chat__metrika__avatar" riot-style="background-image:url({user.avatar})"></div> </div> <div if="{user.profile.bdate}" class="chat__metrika__bdate">{user.profile.bdate}</div> <div class="chat__metrika__title">{user.name ? user.name : \'Гость\'}</div> </div> <div class="chat__metrika__content"> <div if="{user.phone}" class="chat__metrika__tile"> <div class="chat__metrika__tile__title">Телефон: <span class="chat__metrika__text__blue">{user.phone}</span></div> </div> <div class="chat__metrika__tile"> <div class="chat__metrika__tile__subtitle">По данным счетчика</div> <div class="chat__metrika__tile__text">{user.metrika.visit}-й раз на сайте, {user.metrika.city}</div> </div> <div if="{user.metrika.start}" class="chat__metrika__tile"> <div class="chat__metrika__tile__subtitle">Страница входа</div> <div class="chat__metrika__tile__text"><a class="chat__metrika__link" href="{user.metrika.start}" target="_blank">{user.metrika.start}</a></div> </div> <div class="chat__metrika__tile"> <div class="chat__metrika__tile__subtitle">На сайт перешли {user.metrika.adv ? \'по рекламе\' : \'с\'}</div> <div class="chat__metrika__tile__text"> {⁗Яндекс.Директ⁗ : user.metrika.adv && user.metrika.referer === ⁗yandex⁗} {⁗Яндекс.Поиск⁗ : !user.metrika.adv && user.metrika.referer === ⁗yandex⁗} {⁗Google.Adwords⁗ : user.metrika.adv && user.metrika.referer === ⁗google⁗} {⁗Google.Поиск⁗ : !user.metrika.adv && user.metrika.referer === ⁗google⁗} {⁗Rambler.Поиск⁗ : user.metrika.referer === ⁗rambler⁗} {⁗Yahoo.Поиск⁗ : user.metrika.referer === ⁗yahoo⁗} {⁗Bing.Поиск⁗ : user.metrika.referer === ⁗bing⁗} {⁗Mail.ru.Поиск⁗ : user.metrika.referer === ⁗mail⁗} <virtual if="{user.metrika.referer && user.metrika.referer.match(/http/)}"> {user.metrika.referer} </virtual> <virtual if="{user.metrika.keyword}">, {user.metrika.keyword}</virtual> </div> </div> <div if="{user.metrika.pages}" class="chat__metrika__tile"> <div class="chat__metrika__tile__title">Посещено: {user.metrika.pages} страниц(ы)</div> <div class="chat__metrika__pages__container"> <div each="{link in user.metrika.pagesData}" no-reorder class="chat__metrika__tile"> <a class="chat__metrika__link" target="_blank" href="{link}">{link}</a> </div> </div> </div> </div> </div> </div> </div> <svg style="position:absolute" xmlns="http://www.w3.org/2000/svg" version="1.1"> <defs> <filter id="goo"> <fegaussianblur in="SourceGraphic" stddeviation="10" result="blur"></fegaussianblur> <fecolormatrix in="blur" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 19 -9" result="goo"></fecolormatrix> <fecomposite in="SourceGraphic" in2="goo"></fecomposite> </filter> </defs> </svg>', '', 'data-marquee="chat" class="section section__marquee"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root);
-
-    $.sid = 777;
-    $.users = [];
-    $.activity = false;
-    $.ready = false;
-    $.socket_id = null;
-    $.user_id = sessionStorage.chat_uid || new Date().getTime() + (Math.round(Math.random() * 10000));
-    $.lastClient = sessionStorage.chat_client && JSON.parse(sessionStorage.chat_client) || {};
-    $.client_id = null;
-    $.timeOutTyped = null;
-    $.typed_id = null;
-    $.iScrollList = null;
-    $.iScrollRoom = {};
-    $.iScrollMetrika = {};
-    $.socket = io.connect('http://5.101.124.21:8008', {
-		reconnection: false
-	});
-    $.reconnectInterval = null;
-
-    if (!sessionStorage.chat_uid) sessionStorage.chat_uid = $.user_id;
-
-    this.on("mount", function(){
-
-        setTimeout(function(){
-            if (!$.socket.connected){
-                $.reconnect();
-                console.log('Chat: невозможно подключиться к серверу!');
-            }
-        }, 1000);
-
-        $.socket.on('connect', function(){
-            console.log('Chat: соединение установленно!');
-            clearInterval($.reconnectInterval);
-            $.reconnectInterval = null;
-            $.ready = true;
-            $.socket_id = this.id;
-            $.socket.emit("join", {
-                id: $.user_id,
-                sid: $.sid,
-                admin: true
-            });
-        });
-
-        var $chat_list = $$($scope.children()[0]),
-            $chat_body = $$($scope.children()[1]);
-
-        $scope.find(".chat__list__close").on(clickEvent, function(){
-            app.sections.nav("data-list");
-            app.iScrollDataList.refresh();
-        });
-
-        $.openRoom = function(e){
-            var $elem = $$(e.currentTarget),
-                id = this._item.user.id;
-
-            var $room = $$($["chat__room__" + id]);
-
-            try {
-                $elem.addClass("chat__list__item--active").siblings().removeClass("chat__list__item--active");
-            } catch(e){}
-            $room.addClass("section--show");
-            $chat_list.addClass("section--hidden");
-
-            $.client_id = id;
-            $.scrollDown();
-
-            app.utils.onEndAnimation($["chat__room__" + id], function(){
-                $.activity = true;
-                $room.addClass("section--active").removeClass("section--show");
-                $.users.forEach(function(item, i) {
-                    if ($.lastClient && $.lastClient.id !== id || !$.lastClient && item.id == id){
-                        $.lastClient = {
-                            id: item.id,
-                            avatar: item.avatar,
-                            online: item.online
-                        };
-                        sessionStorage.chat_client = JSON.stringify($.lastClient);
-                        $.update();
-                    }
-                });
-                $.viewedList();
-            });
-        };
-
-        $chat_body.on(clickEvent, ".chat__room__close", function(){
-
-            var $room = $$($["chat__room__" + $.client_id]);
-
-            $room.addClass("section--hidden");
-            $chat_list.removeClass("section--hidden");
-
-            app.utils.onEndAnimation($["chat__room__" + $.client_id], function(){
-                $.client_id = null;
-                $.activity = false;
-                $room.removeClass("section--active").removeClass("section--hidden");
-                $.update();
-            });
-        });
-
-        $scope.find(".chat__list__header__photo").on(clickEvent, function(){
-            if ($.lastClient && $.lastClient.id) {
-                var $metrika = $$($["chat__metrika__" + $.lastClient.id]);
-                $metrika.addClass("section--show");
-            }
-        });
-
-        $chat_body.on(clickEvent, ".chat__header__photo", function(){
-            if ($.client_id) {
-                var $metrika = $$($["chat__metrika__" + $.client_id]);
-                $metrika.addClass("section--show");
-            }
-        });
-
-        $scope.on(clickEvent, ".chat__metrika__close", function(){
-            if ($.lastClient && $.lastClient.id) {
-                var $metrika = $$($["chat__metrika__" + $.lastClient.id]);
-                $metrika.removeClass("section--show");
-            }
-        });
-    });
-
-    $.socket.on("update_" + $.sid, function(data){
-        if ($.ready) {
-
-            $.users = data;
-            $.typed_id = null;
-            if ($.activity){
-                $.users.forEach(function(item, i) {
-                    if (item.id == $.client_id){
-                        var j = item.messages.length - 1;
-                        $.users[i].messages[j].new = true;
-                    }
-                });
-            }
-            $.update();
-             if ($.client_id){
-                if (!$.users.length){
-                    $.client_id = null;
-                    $.lastClient = null;
-                    sessionStorage.chat_client = null;
-                    $.update();
-                }
-                else {
-                    $.iScrollRoom[$.client_id].refresh();
-                    $.iScrollRoom[$.client_id].scrollTo(0, $.iScrollRoom[$.client_id].maxScrollY, 400, IScroll.utils.ease.cubicOut);
-                }
-
-            }
-
-            else if (!$.client_id){
-                if ($.users.length && $.lastClient) {
-                    var avail = false;
-                    $.users.forEach(function(item, i) {
-                        if ($.lastClient.id === item.id) avail = true;
-                    });
-                    if (!avail){
-                        $.lastClient = null;
-                        sessionStorage.chat_client = null;
-                        $.update();
-                    }
-                }
-                else {
-                    $.lastClient = null;
-                    sessionStorage.chat_client = null;
-                    $.update();
-                }
-            }
-            $.scrollContent($.users);
-            clearTimeout($.timeOutTyped);
-            if ($.activity){
-                app.utils.onEndAnimation($["chat__room__" + $.client_id].querySelector(".chat__message__new"), function(){
-                    setTimeout(function(){
-                        $.users.forEach(function(item, i) {
-                            if (item.id == $.client_id){
-                                var j = item.messages.length - 1;
-                                $.users[i].messages[j].new = false;
-                            }
-                        });
-                        $.update();
-                    }, 300);
-                });
-            }
-        }
-    });
-
-    $.socket.on("notify_" + $.sid, function(id){
-        if ($.activity && $.client_id === id){
-            $.viewedList();
-        }
-    });
-
-    $.socket.on("update_offer" + $.sid, function(type){
-        $.tags["chat-list-raw"].forEach(function(item, i) {
-            if (item.message.type === type || item.message.type === "auth" && (type === "name" || type === "profile")){
-                var text = item.message.text;
-                item.root.innerHTML = text;
-            }
-        });
-    });
-
-    $.socket.on("typed_" + $.sid, function(id){
-        if ($.ready && $.client_id === id) {
-            clearTimeout($.timeOutTyped);
-            $.typed_id = id;
-            $.update();
-            $.timeOutTyped = setTimeout(function(){
-                $.typed_id = null;
-                $.update();
-            }, 5000);
-        }
-    });
-
-    $.socket.on('disconnect', function() {
-        $.reconnect();
-        console.log('Chat: соединение потеряно!');
-        $.users = [];
-        $.update();
-    });
-
-    $.reconnect = function(){
-        if ($.reconnectInterval) return;
-        $.reconnectInterval = setInterval(function(){
-            $.socket.connect();
-        }, 500);
-        console.log('Chat: запуск реконнекта!');
-    };
-
-    $.scrollContent = function(users){
-        if (!$.iScrollList){
-            $.iScrollList = new IScroll($["chat__list__scroll"], {
-                scrollX: false,
-                scrollY: true,
-                mouseWheel: true
-            });
-        }
-        users.forEach(function(item, i) {
-            if (!$.iScrollRoom[item.id]){
-                $.iScrollRoom[item.id] = new IScroll($["chat__room__scroll__" + item.id], {
-            		scrollX: false,
-            		scrollY: true,
-                    mouseWheel: true
-            	});
-                $.iScrollRoom[item.id].scrollTo(0, $.iScrollRoom[item.id].maxScrollY);
-
-                $.iScrollMetrika[item.id] = new IScroll($["chat__metrika__wrapper__" + item.id], {
-            		scrollX: false,
-            		scrollY: true,
-                    mouseWheel: true
-            	});
-
-                (function animationLoopRoom(){
-            		app.utils.raf(animationLoopRoom);
-            		app.utils.getScroll($.iScrollRoom[item.id]);
-            	})();
-
-                (function animationLoopMetrika(){
-            		app.utils.raf(animationLoopMetrika);
-            		app.utils.getScroll($.iScrollMetrika[item.id]);
-            	})();
-
-                $["chat__room__scroll__" + item.id].addEventListener("touchstart", function(e){
-                    $["chat__room__" + item.id].querySelector(".chat__panel__input").blur();
-                });
-            }
-        });
-    };
-
-    $.scrollDown = function(slow){
-        if (!$.client_id || !$.iScrollRoom[$.client_id]) return;
-        $.iScrollRoom[$.client_id].refresh();
-        $.iScrollRoom[$.client_id].scrollTo(0, $.iScrollRoom[$.client_id].maxScrollY);
-    };
-
-    $.focusInput = function(){
-        setTimeout(function(){
-            $.socket.emit("typed", $.client_id);
-        }, app.device.isMobile ? 400 : 0);
-    };
-
-    $.sendMessage = function(e){
-        e.preventDefault();
-        e.stopPropagation();
-        var text = this.chat__panel__input.value;
-        if (text.length){
-            this.chat__panel__input.value = "";
-            this.chat__panel__input.blur();
-
-            setTimeout(function(){
-                $.socket.emit("send", {
-                    id: $.client_id,
-                    message: text
-                });
-            }, app.device.isMobile ? 400 : 0);
-        }
-    };
-
-    $.changeOptions = function(e){
-        var value = e.target.value;
-        if (value === "1"){
-            $.socket.emit("send", {
-                id: $.client_id,
-                type: "auth",
-                message: "Предложение представиться"
-            });
-        }
-        else if (value === "2"){
-            $.socket.emit("send", {
-                id: $.client_id,
-                type: "phone",
-                message: "Предложение оставить телефон"
-            });
-        }
-        else if (value === "3"){
-            $.socket.emit("send", {
-                id: $.client_id,
-                type: "email",
-                message: "Предложение оставить email"
-            });
-        }
-    };
-
-    $.viewedList = function(){
-        var avail = false;
-        $.users.forEach(function(item, i) {
-            if (item.id === $.client_id && $.users[i].newMessages > 0) {
-                $.users[i].newMessages = 0;
-                $.users[i].messages.forEach(function(message, j) {
-                    message.viewed = true;
-                });
-                $.socket.emit("viewed", i);
-                avail = true;
-            }
-        });
-        if (avail) $.update();
-    };
-
-});
-
-riot.tag2('dashboard-balance', '<div id="dashboard__balance__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Ваш баланс</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right dashboard__balance__days"> 28 дн </div> </header> <div class="dashboard__screen"> <div class="dashboard__balance__label">остаток</div> <div id="dashboard__balance__big" class="dashboard__screen__circle"></div> </div> <div class="dashboard__balance__button">Пополнить баланс</div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="c-gray">12 мар 2016</div> <div class="t-right"><strong>1 250,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">7 мар 2016</div> <div class="t-right"><strong>3 480,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">5 мар 2016</div> <div class="t-right"><strong>900,0 Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("balance");
-    };
-
-    this.on("mount", function(){
-
-        $scope.find("#dashboard__balance__big").circliful({
-            foregroundColor: "#68f5ff",
-            foregroundBorderWidth: 8.5,
-            backgroundBorderWidth: 8.5,
-            showPercent: false,
-            percent: 88,
-            textFamily: "roboto",
-            textSize: "25px",
-            target: "4 750,0"
-        });
-
-        $.iScrollList = new IScroll($["dashboard__balance__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-    });
-
-});
-
-riot.tag2('dashboard-currency', '<div id="dashboard__currency__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Курсы валют</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen dashboard__screen--currency"> <div class="dashboard__screen__label">cегодня</div> <div class="dashboard__screen__label dashboard__screen__label--left">ЦБ РФ</div> <div class="dashboard__screen__currency dashboard__screen__currency--line"> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">66,69 <span class="dashboard__screen__currency__rub">Р</span></div> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">$</div> </div> <div class="dashboard__screen__currency"> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">&euro;</div> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">75,99 <span class="dashboard__screen__currency__rub">Р</span></div> </div> </div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="c-gray">Австралийский доллар</div> <div class="t-right"><strong>50.726 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">Белорусский рубль</div> <div class="t-right"><strong>33.604 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">Венгерский форинт</div> <div class="t-right"><strong>24.500 Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("currency");
-    };
-
-    this.on("mount", function(){
-
-        $.iScrollList = new IScroll($["dashboard__currency__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-    });
-
-});
-
-riot.tag2('dashboard-list', '<div id="dashboard__scroll" class="section__wrapper"> <div class="section__container section__container__dashboard"> <header class="header__dashboard"> <div class="header__title">Инфо-панель</div> <div class="header__left"> <div class="dashboard__openMenu header__icon UI__menu"><div class="UI__menu__item"></div></div> </div> <div class="header__right"> <div onclickdelegate="{openDataList}" class="dashboard__next__section header__icon header__icon__next__white"></div> </div> </header> <div onclickdelegate="{openBalance}" class="dashboard__tile dashboard__tile__balance"> <div class="dashboard__tile__label">пополнить</div> <div id="dashboard__balance" class="dashboard__circle"></div> <div class="dashboard__title"> <div class="dashboard__subtitle">Ваш баланс:</div> <div class="dashboard__balance">4 750,0 <span class="dashboard__balance__rub">Р</span></div> </div> </div> <div onclickdelegate="{openTraffic}" class="dashboard__tile dashboard__tile__traffic"> <div class="dashboard__tile__label">подробнее</div> <div id="dashboard__traffic__score" class="dashboard__circle"></div> <div class="dashboard__title">Входящие</div> </div> <div class="dashboard__tile"> <span id="dashboard__traffic__graph">5,3,9,6,5,9,7,3,5,2</span> </div> <div onclickdelegate="{openWeather}" class="dashboard__tile dashboard__tile__weather"> <div class="dashboard__tile__label">сегодня</div> <canvas id="partly-cloudy-night" class="dashboard__weather__canvas"></canvas> <div class="dashboard__weather"> <div class="dashboard__weather__temp">+6</div> <div class="dashboard__weather__text">Облачно, дождь</div> <div class="dashboard__weather__text">70% / 745 мм рт.с.</div> </div> </div> <div onclickdelegate="{openCurrency}" class="dashboard__tile dashboard__tile__currency"> <div class="dashboard__currency"> <div class="dashboard__currency__title">$</div> <div class="dashboard__currency__value">68,89</div> </div> <div class="dashboard__currency"> <div class="dashboard__currency__title">&euro;</div> <div class="dashboard__currency__value">78,27</div> </div> </div> </div> </div>', '', 'class="section section__primary"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $section = $$($.parent.root);
-
-    $.openDataList = function(e){
-        app.sections.nav("data-list");
-    };
-
-    $.openBalance = function(e){
-        $.openSection("balance");
-    };
-
-    $.openTraffic = function(e){
-        $.openSection("traffic");
-    };
-
-    $.openWeather = function(e){
-        $.openSection("weather");
-    };
-
-    $.openCurrency = function(e){
-        $.openSection("currency");
-    };
-
-    $.openSection = function(section){
-        $.sections[section].section.addClass("section--show");
-        $scope.addClass("section--hidden");
-
-        app.utils.onEndAnimation($.sections[section].section[0], function(){
-            $.sections[section].section.addClass("section--active").removeClass("section--show");
-            $.sections[section].tag.iScrollList.refresh();
-
-        });
-    };
-
-    $.closeSection = function(section){
-        $.sections[section].section.addClass("section--hidden");
-        $scope.removeClass("section--hidden");
-
-        app.utils.onEndAnimation($.sections[section].section[0], function(){
-            $.sections[section].section.removeClass("section--active").removeClass("section--hidden");
-
-        });
-    };
-
-    this.on("mount", function(){
-
-        $.sections = {
-            balance: {
-                tag: $.parent.tags["dashboard-balance"],
-                section: $$($.parent.tags["dashboard-balance"].root)
-            },
-            traffic: {
-                tag: $.parent.tags["dashboard-traffic"],
-                section: $$($.parent.tags["dashboard-traffic"].root)
-            },
-            weather: {
-                tag: $.parent.tags["dashboard-weather"],
-                section: $$($.parent.tags["dashboard-weather"].root)
-            },
-            currency: {
-                tag: $.parent.tags["dashboard-currency"],
-                section: $$($.parent.tags["dashboard-currency"].root)
-            }
-        };
-
-        $scope.find("#dashboard__balance").circliful({
-            foregroundColor: "#68f5ff",
-            backgroundColor: "#f0f4fb",
-            textColor: "#333947",
-            foregroundBorderWidth: 10,
-            backgroundBorderWidth: 10,
-            percent: 88
-        });
-
-        $scope.find("#dashboard__traffic__score").circliful({
-            foregroundColor: "#fcde30",
-            backgroundColor: "#f0f4fb",
-            textColor: "#333947",
-            foregroundBorderWidth: 10,
-            backgroundBorderWidth: 10,
-            textSize: "35px",
-            showPercent: false,
-            percent: 54,
-            target: 12
-        });
-
-        $scope.find("#dashboard__traffic__graph").peity("bar", {
-            fill: ["#839ae3", "#62e1d8"],
-            width: "100%",
-            height: "100px"
-        });
-
-        if (typeof Skycons !== 'undefined'){
-            var skycons = new Skycons(
-                {"color": "#839ae3"},
-                {"resizeClear": true}
-            );
-            skycons.add("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
-            skycons.play();
-        };
-
-        $.iScrollList = new IScroll($["dashboard__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-        app.iScrollDashboardList = $.iScrollList;
-
-    });
-
-});
-
-riot.tag2('dashboard-section', '<dashboard-list></dashboard-list> <dashboard-balance></dashboard-balance> <dashboard-traffic></dashboard-traffic> <dashboard-weather></dashboard-weather> <dashboard-currency></dashboard-currency>', '', 'data-marquee="dashboard" class="section section__marquee section__header__nofixed"', function(opts) {
-});
-
-riot.tag2('dashboard-traffic', '<div id="dashboard__traffic__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Статистика входящих</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">cегодня</div> <span id="dashboard__traffic__big">5,3,9,6</span> </div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#00d1fe"></span>Обратные звонки</div> <div class="w-15p t-center c-gray">12%</div> <div class="w-15p t-center"><strong>3</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ffe02d"></span>Онлайн-чаты</div> <div class="w-15p t-center c-gray">24%</div> <div class="w-15p t-center"><strong>5</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#b77de9"></span>Сообщения</div> <div class="w-15p t-center c-gray">27%</div> <div class="w-15p t-center"><strong>6</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ff9498"></span>Заявки</div> <div class="w-15p t-center c-gray">18%</div> <div class="w-15p t-center"><strong>4</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("traffic");
-    };
-
-    this.on("mount", function(){
-
-        $$($["dashboard__traffic__big"]).peity("donut", {
-
-            fill: ["#00d1fe", "#ffe02d", "#b77de9", "#ff9498"],
-            width: 176,
-            height: 176
-        });
-
-        $.iScrollList = new IScroll($["dashboard__traffic__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-    });
-
-});
-
-riot.tag2('dashboard-weather', '<div id="dashboard__weather__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Прогноз погоды</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">cегодня</div> <div class="dashboard__screen__label dashboard__screen__label--left">Москва</div> <div class="dashboard__screen__weather"> <div class="dashboard__screen__weather__description"> <div class="dashboard__screen__weather__temp">+21</div> <div class="dashboard__screen__weather__text">Облачно, дождь</div> <div class="dashboard__screen__weather__text">Влаж. 70%</div> <div class="dashboard__screen__weather__text">745 мм рт.ст.</div> </div> <div class="dashboard__screen__weather__svg"></div> </div> </div> <div class="dashboard__weather__week"> <div class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">09/4</div> <canvas id="dashboard__weather__week1" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">+19</div> </div> <div class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">10/4</div> <canvas id="dashboard__weather__week2" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">+16</div> </div> <div class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">11/4</div> <canvas id="dashboard__weather__week3" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">+8</div> </div> <div class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">12/4</div> <canvas id="dashboard__weather__week4" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">+10</div> </div> <div class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">13/4</div> <canvas id="dashboard__weather__week5" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">+18</div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("weather");
-    };
-
-    this.on("mount", function(){
-
-        var skyconsWeek = new Skycons(
-            {"color": "#158ffe"},
-            {"resizeClear": true}
-        );
-        skyconsWeek.add("dashboard__weather__week1", Skycons.CLEAR_DAY);
-        skyconsWeek.add("dashboard__weather__week2", Skycons.CLEAR_DAY);
-        skyconsWeek.add("dashboard__weather__week3", Skycons.PARTLY_CLOUDY_DAY);
-        skyconsWeek.add("dashboard__weather__week4", Skycons.PARTLY_CLOUDY_NIGHT);
-        skyconsWeek.add("dashboard__weather__week5", Skycons.CLOUDY);
-
-        $.iScrollList = new IScroll($["dashboard__weather__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-    });
-
-});
-
 riot.tag2('data-header', '<div onclickdelegate="{openMenu}" class="header__title">{headerTitle}</div> <div class="header__left"> <div class="header__icon UI__menu"><div class="UI__menu__item"></div></div> </div> <div class="header__right"> <div onclickdelegate="{openAlarm}" class="header__icon header__icon__alarm header__icon__alarm--active"> <div class="header__icon__alarm__counts">3</div> </div> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> <div class="header__data__panel {header__data__panel--active : show}"> <div class="header__left"> <div onclickdelegateupdate="{onClear}" class="header__icon header__icon__back__white"></div> <div class="header__icon header__data__panel__count">{counts}</div> </div> <div class="header__right"> <div onclickdelegateupdate="{onViewed}" class="header__icon header__data__panel__viewed"></div> <div onclickdelegateupdate="{onImportant}" class="header__icon header__data__panel__important"></div> <div onclickdelegate="{onRemove}" class="header__icon header__data__panel__remove"></div> <div onclickdelegate="{onStatus}" class="header__icon header__data__panel__folder"></div> <div onclickdelegate="{onCheckAll}" class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </div> <div class="data__list__loader"> <i class="data__list__loader__blank"></i> </div>', '', 'class="header header__data__list"', function(opts) {
 
     var $ = this,
@@ -1277,7 +1397,7 @@ riot.tag2('data-header', '<div onclickdelegate="{openMenu}" class="header__title
     };
 
     $.onViewed = function(){
-        $fetch('data/list/viewed', "put", _.pluck($dataList.data.get('isChecked'), "_id"));
+        $fetch('data/list/viewed', "put", $dataList.getCheckedIds());
         $dataList.data.get('isChecked', function(item) {
             item.new = false;
         });
@@ -1286,8 +1406,14 @@ riot.tag2('data-header', '<div onclickdelegate="{openMenu}" class="header__title
 
     $.onImportant = function(){
         $dataList.data.get('isChecked', function(item){
-            if (item.important) item.important = false;
-            else item.important = true;
+            if (item.important) {
+                item.important = false;
+                $fetch('data/list/unimportant', "put", [item._id]);
+            }
+            else {
+                item.important = true;
+                $fetch('data/list/important', "put", [item._id]);
+            }
         });
         $.onClear();
     };
@@ -1297,6 +1423,7 @@ riot.tag2('data-header', '<div onclickdelegate="{openMenu}" class="header__title
             title: "Удалить выбранные?",
             success: {
                 callback: function(){
+                    $fetch('data/list/remove', "delete", $dataList.getCheckedIds());
                     $dataList.data.get('isChecked', function(item){
                         item.remove = true;
                     });
@@ -1322,6 +1449,7 @@ riot.tag2('data-header', '<div onclickdelegate="{openMenu}" class="header__title
             type: "status",
             data: $dataList.data.get('status'),
             callback: function(value){
+                $fetch('data/list/status/' + value, "put", $dataList.getCheckedIds());
                 $dataList.data.get('isChecked', function(item){
                     item.status = value;
                 });
@@ -1473,14 +1601,6 @@ riot.tag2('data-list', '<div class="section__container section__container__data_
               });
             }
         )
-    },
-    {
-        autoCommit: false,
-        asynchronous: true,
-        immutable: false,
-        lazyMonkeys: false,
-        persistent: false,
-        pure: true
     });
 
     this.on("mount", function(){
@@ -1516,6 +1636,10 @@ riot.tag2('data-list', '<div class="section__container section__container__data_
 
         app.iScrollDataList = $.iScrollList;
     });
+
+    $.getCheckedIds = function(){
+        return _.pluck($.data.get('isChecked'), "_id");
+    };
 
     $.getDate = function(date){
         var days = tempus().between(tempus(date), 'day');
@@ -1569,6 +1693,7 @@ riot.tag2('data-list', '<div class="section__container section__container__data_
             data: $.data.get('status'),
             value: this.item.status,
             callback: function(value){
+                $fetch('data/list/status/' + value, "put", [id]);
                 $.data.select('items', {'_id': id}).set("status", value);
                 _this.update();
             }
@@ -1634,87 +1759,4 @@ riot.tag2('data-menu', '<div onclickdelegateupdateall="{onSelect}" each="{items}
 });
 
 riot.tag2('data-section', '<data-header></data-header> <data-list></data-list> <data-menu></data-menu>', '', 'data-marquee="data" class="section section__marquee section__data__list"', function(opts) {
-});
-
-riot.tag2('login-section', '<div class="login__section__logo"></div> <div class="login__section__form"> <div class="login__section__item login__section__item--login"> <div class="login__section__item__title">логин</div> <div class="login__section__item__circle login__section__item__circle--login"></div> <input class="login__section__input" name="login" type="text" placeholder="логин" spellcheck="false" autocomplete="off"> </div> <div class="login__section__item login__section__item--pass"> <div class="login__section__item__circle login__section__item__circle--pass"></div> <div class="login__section__item__title">пароль</div> <input class="login__section__input" name="password" type="text" placeholder="пароль" spellcheck="false" autocomplete="off"> </div> </div> <div class="login__section__footer"> <div class="login__section__button">Войти</div> </div>', '', 'class="login__section"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root);
-
-    this.on("mount", function(){
-
-        $scope.find(".login__section__item__circle").on("click", function(){
-            $scope.addClass("login__section--input");
-            $scope.find(".login__section__input[name=login]").focus();
-        });
-
-        $scope.find(".login__section__input").on("focus blur", function(e){
-            if (e.type === "focus"){
-                $scope.addClass("login__section--focus");
-            }
-            else if (e.type === "blur"){
-                $scope.removeClass("login__section--focus");
-            }
-        });
-
-        $scope.find(".login__section__button").on("click", function(e){
-            $scope.addClass("login__section--loading");
-            setTimeout(function(){
-                $scope.addClass("login__section--enter");
-            }, 1500);
-        });
-
-    });
-
-});
-
-riot.tag2('popup-select', '<div class="popup__select__wrapper"> <div if="{type === ⁗status⁗}" class="popup__select__container"> <div onclickdelegateupdateall="{onSelect}" each="{items}" no-reorder class="popup__select__item {popup__select__item--active : _id == value}"> <div class="popup__select__status__color popup__select__status__{color}"> <span class="popup__select__item__title">{title}</span> </div> </div> </div> <div if="{type === ⁗status⁗ && icon.type}" class="popup__select__status__icon"> <div if="{icon.type !== ⁗profile⁗}" class="popup__select__status__icon__item popup__select__status__icon__item--{icon.type}"></div> <div if="{icon.type === ⁗profile⁗}" class="popup__select__status__icon__item" riot-style="background-image:url({icon.image})"></div> </div> <div if="{!type}" class="popup__select__container"> <div onclickdelegateupdateall="{onSelect}" each="{items}" no-reorder class="popup__select__item"> <span class="popup__select__item__title">{title}</span> </div> </div> </div>', '', 'class="popup__select {popup__select--active : active}"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root);
-
-    $.active = false;
-
-    $.items = {};
-
-    $.show = function(data){
-        if (data){
-            $.type = data.type;
-            $.icon = data.icon;
-            $.items = data.data;
-            $.value = data.value;
-            $.callback = data.callback;
-            $.active = true;
-            $.update();
-        }
-    };
-
-    $.onSelect = function(){
-        var id = this._id;
-        $.value = id;
-        $.active = false;
-        if ($.callback) $.callback(id);
-    };
-
-    this.on("mount", function(){
-
-        $scope.on(clickEvent, function(e){
-            if (e.target.getAttribute("class") && e.target.getAttribute("class").match(/popup__select--active/)){
-                $.active = false;
-                $.update();
-            }
-        });
-
-    });
-
-});
-
-riot.tag2('root-section', '<section id="sections"> <dashboard-section></dashboard-section> <data-section></data-section> </section> <popup-select></popup-select> <alert-window></alert-window> <alarm-section></alarm-section>', '', 'id="root"', function(opts) {
-
-    $root = this;
-
-    this.on("mount", function(){
-        app.sections.init("data");
-    });
-
 });

@@ -55,7 +55,7 @@
     };
 
     $.onViewed = function(){
-        $fetch('data/list/viewed', "put", _.pluck($dataList.data.get('isChecked'), "_id"));
+        $fetch('data/list/viewed', "put", $dataList.getCheckedIds());
         $dataList.data.get('isChecked', function(item) {
             item.new = false;
         });
@@ -81,7 +81,7 @@
             title: "Удалить выбранные?",
             success: {
                 callback: function(){
-                    $fetch('data/list/remove', "delete", _.pluck($dataList.data.get('isChecked'), "_id"));
+                    $fetch('data/list/remove', "delete", $dataList.getCheckedIds());
                     $dataList.data.get('isChecked', function(item){
                         item.remove = true;
                     });
@@ -107,8 +107,7 @@
             type: "status",
             data: $dataList.data.get('status'),
             callback: function(value){
-                console.dir($dataList.data.isCheckedIds());
-                $fetch('data/list/status/' + value, "put", _.pluck($dataList.data.get('isCheckedIds'), "_id"));
+                $fetch('data/list/status/' + value, "put", $dataList.getCheckedIds());
                 $dataList.data.get('isChecked', function(item){
                     item.status = value;
                 });

@@ -59,7 +59,7 @@ var utils = (function () {
 			destination,
 			duration;
 
-		deceleration = deceleration === undefined ? 0.0034 : deceleration;
+		deceleration = deceleration === undefined ? 0.0010 : deceleration;
 
 		destination = current + ( speed * speed ) / ( 2 * deceleration ) * ( distance < 0 ? -1 : 1 );
 		duration = speed / deceleration;

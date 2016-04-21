@@ -46,7 +46,6 @@ app.get('/init/:sid', function(req, res) {
 			status: results[1]
 		}});
 	});
-
 });
 
 app.put('/viewed/:sid', function(req, res) {
