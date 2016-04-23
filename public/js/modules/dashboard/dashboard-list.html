@@ -60,10 +60,8 @@
         currency: {}
     };
 
-    this.on("mount", function(){
-
+    $.init = function(){
         $fetch('dashboard/init', "get").then(function(data){
-
             var $weather = $.sections["weather"].tag,
                 $currency = $.sections["currency"].tag.data;
 
@@ -87,25 +85,9 @@
             $.sections["currency"].tag.update();
             $.sections["currency"].tag.iScrollList.refresh();
         });
+    };
 
-        $.sections = {
-            balance: {
-                tag: $.parent.tags["dashboard-balance"],
-                section: $$($.parent.tags["dashboard-balance"].root)
-            },
-            traffic: {
-                tag: $.parent.tags["dashboard-traffic"],
-                section: $$($.parent.tags["dashboard-traffic"].root)
-            },
-            weather: {
-                tag: $.parent.tags["dashboard-weather"],
-                section: $$($.parent.tags["dashboard-weather"].root)
-            },
-            currency: {
-                tag: $.parent.tags["dashboard-currency"],
-                section: $$($.parent.tags["dashboard-currency"].root)
-            }
-        };
+    this.on("mount", function(){
 
         $scope.find("#dashboard__balance").circliful({
             foregroundColor: "#68f5ff",
@@ -143,6 +125,25 @@
             skycons.play();
         };
 
+        $.sections = {
+            balance: {
+                tag: $.parent.tags["dashboard-balance"],
+                section: $$($.parent.tags["dashboard-balance"].root)
+            },
+            traffic: {
+                tag: $.parent.tags["dashboard-traffic"],
+                section: $$($.parent.tags["dashboard-traffic"].root)
+            },
+            weather: {
+                tag: $.parent.tags["dashboard-weather"],
+                section: $$($.parent.tags["dashboard-weather"].root)
+            },
+            currency: {
+                tag: $.parent.tags["dashboard-currency"],
+                section: $$($.parent.tags["dashboard-currency"].root)
+            }
+        };
+
         $.iScrollList = new IScroll($["dashboard__scroll"], {
             scrollX: false,
             scrollY: true
@@ -154,7 +155,6 @@
         })();
 
         app.iScrollDashboardList = $.iScrollList;
-
     });
 
     // open next section

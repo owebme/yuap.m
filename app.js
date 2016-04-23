@@ -3,11 +3,16 @@ var log = require('./libs/log')(module);
 
 var express = require('express');
 var path = require('path');
+var fs = require('fs');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
-var cookieParser = require('cookie-parser');
+//var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
+var session = require('express-session');
+//var errorHandler = require('errorhandler');
+var memoryStore = session.MemoryStore;
+var db = require('./libs/db/mongoose')(log, config);
+//var generate = require('./generate');
 var app = express();
 
 // view engine setup
@@ -18,44 +23,18 @@ app.use(favicon(path.join(__dirname, '/', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+//app.use(cookieParser());
+app.use(session({
+    secret: config.get('session:secret'),
+	key: config.get('session:key'),
+    cookie: config.get('session:cookie'),
+    store: new memoryStore(),
+    resave: true,
+    saveUninitialized: true	
+}));
 app.use(express.static(path.join(__dirname, '/')));
 
-var allowCrossDomain = function(req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-	//res.header("Content-Type", "application/json; charset=utf-8");
-	
-    if ('OPTIONS' == req.method) {
-      res.send(200);
-    }
-    else {
-      next();
-    }
-};
-
-app.use(allowCrossDomain);
-
-mongoose.connect(config.get('mongodb:uri'));
-
-var db = mongoose.connection;
-
-db.on('error', function (err) {
-	log.error('Error connection MongoDB:', err.message);
-});
-
-db.once('open', function callback () {
-	log.info("Connected to MongoDB!");
-});
-
-app.use('/', require('./routes/index'));
-
-app.use('/parser', require('./routes/parser'));
-
-app.use('/api/dashboard', require('./routes/api/dashboard'));
-
-app.use('/api/data/list', require('./routes/api/dataList'));
+require('./routes')(app);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

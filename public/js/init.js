@@ -13,6 +13,8 @@
 
     $sid = 777;
 
-    riot.mount('*');
+    $window.on('load', function(){
+        riot.mount('*');
+    });
 
 })();

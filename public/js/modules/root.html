@@ -1,5 +1,7 @@
 <root-section id="root">
 
+    <login-section></login-section>
+
     <section id="sections">
         <dashboard-section></dashboard-section>
         <data-section></data-section>
@@ -9,14 +11,13 @@
     <popup-select></popup-select>
     <alert-window></alert-window>
     <alarm-section></alarm-section>
-    <!-- <login-section></login-section> -->
 
 <script>
 
     $root = this;
 
     this.on("mount", function(){
-        app.sections.init("dashboard");
+        app.sections.init("data");
     });
 
 </script>

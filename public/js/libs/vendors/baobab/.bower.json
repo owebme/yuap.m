@@ -1,0 +1,35 @@
+{
+  "name": "baobab",
+  "main": "build/baobab.min.js",
+  "version": "2.3.3",
+  "homepage": "https://github.com/Yomguithereal/baobab",
+  "author": {
+    "name": "Guillaume Plique",
+    "url": "http://github.com/Yomguithereal"
+  },
+  "description": "JavaScript persistent data tree with cursors.",
+  "keywords": [
+    "cursors",
+    "atom",
+    "tree",
+    "react"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "2.3.3",
+  "_resolution": {
+    "type": "version",
+    "tag": "2.3.3",
+    "commit": "9c8765a57093ca7823f05450674ec8b4b5e66b21"
+  },
+  "_source": "https://github.com/Yomguithereal/baobab.git",
+  "_target": "^2.3.3",
+  "_originalSource": "baobab",
+  "_direct": true
+}

@@ -5,7 +5,7 @@ var request = require('request');
 var validator = require('validator');
 var fs = require('fs');
 var to_json = require('xmljson').to_json;
-var iconv = require('iconv-lite');
+var utils = require(libs + 'utils');
 var mongoose = require('mongoose');
 var app = express.Router();
 
@@ -69,7 +69,7 @@ app.get('/currency', function(req, res) {
 	function(error, response, xml){
 		if (!error && response.statusCode == 200) {
 			
-			xml = iconv.encode(iconv.decode(new Buffer(xml, 'binary'), 'win1251'), 'utf8').toString();
+			xml = utils.convert(xml, 'win1251', 'utf8');
 			
 			to_json(xml, function (error, data) {
 				if (!error){

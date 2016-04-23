@@ -1,7 +1,10 @@
 <data-menu class="data__menu { data__menu--active : active }">
 
     <div onclickDelegateUpdateAll={ onSelect } each={ items } no-reorder class="data__menu__item { data__menu__item--active : name == value }">
-        <span class="data__menu__item__icon data__menu__item--{ name }">{ subtitle }</span>
+        <span class="data__menu__item__title data__menu__item--{ name }">
+            { subtitle }
+            <span if={ count > 0 } class="data__menu__item__count">{ count }</span>
+        </span>
     </div>
 
 <script>
@@ -18,27 +21,32 @@
         {
             title: "Звонки",
             subtitle: "Звонки c сайта",
-            name: "callback"
+            name: "callback",
+            count: 0
         },
         {
             title: "Письма",
             subtitle: "Все письма",
-            name: "feedback"
+            name: "feedback",
+            count: 1
         },
         {
             title: "Онлайн-чаты",
             subtitle: "Онлайн-чаты",
-            name: "chat"
+            name: "chat",
+            count: 2
         },
         {
             title: "Заявки",
             subtitle: "Все заявки",
-            name: "order"
+            name: "order",
+            count: 0
         },
         {
             title: "Входящие",
             subtitle: "Все входящие",
-            name: "inbox"
+            name: "inbox",
+            count: 0
         }
     ];
 

@@ -54,7 +54,7 @@
         )
     });
 
-    this.on("mount", function(){
+    $.init = function(){
         //setInterval(function(){
             //console.time("data/list/init");
             $fetch('data/list/init', "get").then(function(data){
@@ -65,15 +65,9 @@
                 $.iScrollList.refresh();
             });
         //}, 1000);
+    };
 
-        // setTimeout(function(){
-        //     $fetch('data/list/update', "get").then(function(data){
-        //         $.data.concat('items', data);
-        //         $.update();
-        //         //console.timeEnd("data/list/init");
-        //         $.iScrollList.refresh();
-        //     });
-        // }, 1000);
+    this.on("mount", function(){
 
         $.panel = $.parent.tags["data-header"];
 

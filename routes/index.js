@@ -1,9 +1,13 @@
-var express = require('express');
-var router = express.Router();
+var checkAuth = require('./auth/checkAuth');
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+module.exports = function(app){
 
-module.exports = router;
+	app.use('/parser', require('./parser'));
+	
+	app.post('/auth', require('./auth').post);
+
+	app.use('/api/dashboard', checkAuth, require('./api/dashboard'));
+
+	app.use('/api/data/list', checkAuth, require('./api/dataList'));
+
+}

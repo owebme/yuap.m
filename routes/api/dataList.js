@@ -6,10 +6,10 @@ var app = express.Router();
 
 var db = mongoose.connection;
 
-app.get('/init/:sid', function(req, res) {
+app.get('/init', function(req, res) {
 	async.parallel([
 		function(callback){
-			db.collection('data').find({"sid": req.params.sid}).sort({"date": -1}).limit(20).toArray(function(err, data){
+			db.collection('data').find({"sid": req.session.user.sid}).sort({"date": -1}).limit(20).toArray(function(err, data){
 				if (!data) {
 					res.statusCode = 404;
 					return res.send({error: 'Not found'});
@@ -25,7 +25,7 @@ app.get('/init/:sid', function(req, res) {
 			});		
 		},
 		function(callback){
-			db.collection('status').find({"sid": req.params.sid}).toArray(function(err, data){
+			db.collection('status').find({"sid": req.session.user.sid}).toArray(function(err, data){
 				if (!data) {
 					res.statusCode = 404;
 					return res.send({error: 'Not found'});
@@ -48,7 +48,7 @@ app.get('/init/:sid', function(req, res) {
 	});
 });
 
-app.put('/viewed/:sid', function(req, res) {
+app.put('/viewed', function(req, res) {
 
 	if (!req.body.length) return;
 
@@ -56,7 +56,7 @@ app.put('/viewed/:sid', function(req, res) {
 		db.collection('data').update(
 		{
 			"_id": ObjectId(item),
-			"sid": req.params.sid
+			"sid": req.session.user.sid
 		},
 		{
 			$set: {
@@ -66,7 +66,7 @@ app.put('/viewed/:sid', function(req, res) {
 	});
 });
 
-app.put('/important/:sid', function(req, res) {
+app.put('/important', function(req, res) {
 
 	if (!req.body.length) return;
 
@@ -74,7 +74,7 @@ app.put('/important/:sid', function(req, res) {
 		db.collection('data').update(
 		{
 			"_id": ObjectId(item),
-			"sid": req.params.sid
+			"sid": req.session.user.sid
 		},
 		{
 			$set: {
@@ -84,7 +84,7 @@ app.put('/important/:sid', function(req, res) {
 	});
 });
 
-app.put('/unimportant/:sid', function(req, res) {
+app.put('/unimportant', function(req, res) {
 
 	if (!req.body.length) return;
 
@@ -92,7 +92,7 @@ app.put('/unimportant/:sid', function(req, res) {
 		db.collection('data').update(
 		{
 			"_id": ObjectId(item),
-			"sid": req.params.sid
+			"sid": req.session.user.sid
 		},
 		{
 			$set: {
@@ -102,25 +102,25 @@ app.put('/unimportant/:sid', function(req, res) {
 	});
 });
 
-app.put('/status/:status/:sid', function(req, res) {
+app.put('/status/:id', function(req, res) {
 
-	if (!req.body.length || req.params.status === 'undefined') return;
+	if (!req.body.length || req.params.id === 'undefined') return;
 
 	req.body.forEach(function(item){
 		db.collection('data').update(
 		{
 			"_id": ObjectId(item),
-			"sid": req.params.sid
+			"sid": req.session.user.sid
 		},
 		{
 			$set: {
-				"status": req.params.status
+				"status": req.params.id
 			}
 		});
 	});
 });
 
-app.delete('/remove/:sid', function(req, res) {
+app.delete('/remove', function(req, res) {
 
 	if (!req.body.length) return;
 
@@ -128,7 +128,7 @@ app.delete('/remove/:sid', function(req, res) {
 		db.collection('data').remove(
 		{
 			"_id": ObjectId(item),
-			"sid": req.params.sid
+			"sid": req.session.user.sid
 		});
 	});
 });

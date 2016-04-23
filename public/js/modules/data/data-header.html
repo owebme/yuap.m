@@ -117,12 +117,10 @@
     };
 
     $.onCheckAll = function(){
-        var counts = 0;
         $dataList.data.get('items', function(item){
-            item.checked = true;
-            counts++;
+            $dataList.data.select('items', {'_id': item._id}).set("checked", true);
         });
-        $.counts = counts;
+        $.counts = $dataList.data.get('items').length;
         $.update();
         $dataList.update();
     };

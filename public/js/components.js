@@ -16,8 +16,9 @@ var $root = null,
     $window = $(window),
     $sections = null,
 	$io = null,
+	$user = null,
 	$sid = null,
-	$apiUri = 'http://192.168.1.68:8080/api/',
+	$apiUri = '/api/',
 	clickEvent = document && 'ontouchstart' in document.documentElement ? 'tap' : 'click';
 
 var $$ = window.Zepto || window.jQuery;
@@ -238,6 +239,7 @@ app.plugins.marquee = function($frame, settings){
 		preventDefault: true,
 		scrollbars: settings.vertical ? 'custom' : false,
 		interactiveScrollbars: settings.vertical && !app.device.support.touch,
+		deceleration: settings.vertical ? false : 0.0034,
 		fake: true
 	});
 	// {fn} set limits

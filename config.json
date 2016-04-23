@@ -4,8 +4,28 @@
         "tokenLife" : 3600
     },
     "mongodb": {
-        "uri": "mongodb://localhost/yuap"
+        "uri": "mongodb://localhost/yuap",
+		"options": {
+			"server": {
+				"socketOptions": {
+					"keepAlive": 1
+				}
+			}
+		}
     },
+    "session": {
+        "secret": "secret",
+        "key": "sid",
+        "cookie": {
+            "path": "/",
+            "httpOnly": true,
+            "maxAge": null
+        }
+    },
+    "memcached": {
+        "hosts": ["127.0.0.1:11211"],
+        "prefix": "it:demo:023:"
+    },	
     "parser": {
         "weather": "",
 		"currency": {
@@ -18,7 +38,7 @@
             "version" : "v1"
         },
         "user": {
-            "username": "root",
+            "username": "admin",
             "password": "1234"
         },
         "client": {

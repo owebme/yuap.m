@@ -53,6 +53,10 @@
     display:block;
     animation:section__secondary__show 0.42s $cubic645 forwards alternate;
 }
+.section__secondary.section--show .section__container {
+    height:100%;
+	overflow:hidden;
+}
 .d-ios {
 	.section__secondary.section--show {
 	    display:block;

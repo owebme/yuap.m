@@ -1,21 +1,24 @@
 <login-section class="login__section">
 
-    <div class="login__section__logo"></div>
-    <div class="login__section__form">
-        <div class="login__section__item login__section__item--login">
-            <div class="login__section__item__title">логин</div>
-            <div class="login__section__item__circle login__section__item__circle--login"></div>
-            <input class="login__section__input" name="login" type="text" placeholder="логин" spellcheck="false" autocomplete="off">
+    <form action="/auth" method="POST" target="auth" name="form">
+        <div class="login__section__logo"></div>
+        <div class="login__section__form">
+            <div class="login__section__item login__section__item--login">
+                <div class="login__section__item__title">логин</div>
+                <div class="login__section__item__circle login__section__item__circle--login"></div>
+                <input class="login__section__input" name="username" type="text" placeholder="логин" spellcheck="false" autocomplete="off">
+            </div>
+            <div class="login__section__item login__section__item--pass">
+                <div class="login__section__item__circle login__section__item__circle--pass"></div>
+                <div class="login__section__item__title">пароль</div>
+                <input class="login__section__input" name="password" type="text" placeholder="пароль" spellcheck="false" autocomplete="off">
+            </div>
         </div>
-        <div class="login__section__item login__section__item--pass">
-            <div class="login__section__item__circle login__section__item__circle--pass"></div>
-            <div class="login__section__item__title">пароль</div>
-            <input class="login__section__input" name="password" type="text" placeholder="пароль" spellcheck="false" autocomplete="off">
+        <div class="login__section__footer">
+            <div class="login__section__button">Войти</div>
         </div>
-    </div>
-    <div class="login__section__footer">
-        <div class="login__section__button">Войти</div>
-    </div>
+        <iframe style="width:0; height:0;" name="auth" border="0">
+    </form>
 
 <script>
 
@@ -24,28 +27,90 @@
 
     this.on("mount", function(){
 
-        $scope.find(".login__section__item__circle").on("click", function(){
-            $scope.addClass("login__section--input");
-            $scope.find(".login__section__input[name=login]").focus();
-        });
+        var $form = $$($.form);
 
-        $scope.find(".login__section__input").on("focus blur", function(e){
-            if (e.type === "focus"){
-                $scope.addClass("login__section--focus");
-            }
-            else if (e.type === "blur"){
-                $scope.removeClass("login__section--focus");
-            }
-        });
+        if (localStorage.user){
 
-        $scope.find(".login__section__button").on("click", function(e){
-            $scope.addClass("login__section--loading");
-            setTimeout(function(){
-                $scope.addClass("login__section--enter");
-            }, 1500);
-        });
+            $user = JSON.parse(localStorage.user);
+
+            $.username.value = $user.username;
+            $.password.value = $user.password;
+
+            $form.submit();
+
+            $.next();
+        }
+        else {
+
+            // $.username.value = "admin";
+            //
+            // $.password.value = "1234";
+
+            $scope.addClass("login__section--active");
+
+            $scope.find(".login__section__item__circle").on("click", function(){
+                $scope.addClass("login__section--input");
+                $scope.find(".login__section__input[name=login]").focus();
+            });
+
+            $scope.find(".login__section__input").on("focus blur", function(e){
+                if (e.type === "focus"){
+                    $scope.addClass("login__section--focus");
+                }
+                else if (e.type === "blur"){
+                    $scope.removeClass("login__section--focus");
+                }
+            });
+
+            $scope.find(".login__section__button").on("click", function(e){
+
+                if (!$.username.value.length || !$.password.value.length){
+                    $scope.addClass("login__section--focus").addClass("login__section--input");
+                    $scope.find(".login__section__input:first").focus();
+                }
+                else {
+                    $scope.addClass("login__section--loading");
+                    app.utils.onEndTransition(this, function(){
+                        $form.submit();
+                    });
+                }
+            });
+
+            var onmessage = function(e) {
+    			var data = e.data,
+    				origin = e.origin;
+
+    			if (data){
+                    if (data.error){
+                        $scope.removeClass("login__section--loading");
+                        $root.tags["alert-window"].show({
+                            title: data.error
+                        });
+                    }
+                    else if (data.result === "OK"){
+                        $user = data.user;
+                        localStorage.user = JSON.stringify(data.user);
+                        $scope.addClass("login__section--enter");
+                        $.next();
+                    }
+    			}
+    		};
+
+            if (typeof window.addEventListener != "undefined") {
+    			window.addEventListener("message", onmessage, false);
+    		} else if (typeof window.attachEvent != "undefined") {
+    			window.attachEvent("onmessage", onmessage);
+    		}
+        }
 
     });
+
+    $.next = function(){
+        setTimeout(function(){
+            $root.tags["data-section"].tags["data-list"].init();
+            $root.tags["dashboard-section"].tags["dashboard-list"].init();
+        }, 200);
+    };
 
 </script>
 

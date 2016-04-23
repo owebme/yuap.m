@@ -7,14 +7,27 @@ MongoClient.connect(config.get('mongodb:uri'), function(err, db) {
 
 	db.collection('data').drop();
 	db.collection('status').drop();
+	db.collection('users').drop();
 	//for (var i=0; i < 5000; i++){
 		var data = getData();
 		db.collection('data').insert(data);
 	//}
 	db.collection('status').insert(status);
+	db.collection('users').insert(user);
 	db.collection('data').ensureIndex({sid: 1});
 	db.collection('status').ensureIndex({sid: 1});
 });
+
+var user = {
+	sid: "777",
+	name: "Александр",
+	surname: "Юртаев",
+	city: "Москва",
+	username: "admin",
+	password: "1234",
+	create: validator.toDate("2016-04-22 11:21"),
+	visite: validator.toDate("2016-04-22 11:21")
+}
 
 function getData(){
 

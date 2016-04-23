@@ -6,7 +6,7 @@ var app = express.Router();
 
 var db = mongoose.connection;
 
-app.get('/init/:sid', function(req, res) {
+app.get('/init', function(req, res) {
 	async.parallel([
 		function(callback){
 			db.collection('weather').find().toArray(function(err, data){

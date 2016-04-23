@@ -16,8 +16,9 @@ var $root = null,
     $window = $(window),
     $sections = null,
 	$io = null,
+	$user = null,
 	$sid = null,
-	$apiUri = 'http://192.168.1.68:8080/api/',
+	$apiUri = '/api/',
 	clickEvent = document && 'ontouchstart' in document.documentElement ? 'tap' : 'click';
 
 var $$ = window.Zepto || window.jQuery;

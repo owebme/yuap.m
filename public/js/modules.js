@@ -382,35 +382,86 @@ riot.tag2('chat-list', '<div class="section section__primary chat__list"> <heade
 
 });
 
-riot.tag2('login-section', '<div class="login__section__logo"></div> <div class="login__section__form"> <div class="login__section__item login__section__item--login"> <div class="login__section__item__title">логин</div> <div class="login__section__item__circle login__section__item__circle--login"></div> <input class="login__section__input" name="login" type="text" placeholder="логин" spellcheck="false" autocomplete="off"> </div> <div class="login__section__item login__section__item--pass"> <div class="login__section__item__circle login__section__item__circle--pass"></div> <div class="login__section__item__title">пароль</div> <input class="login__section__input" name="password" type="text" placeholder="пароль" spellcheck="false" autocomplete="off"> </div> </div> <div class="login__section__footer"> <div class="login__section__button">Войти</div> </div>', '', 'class="login__section"', function(opts) {
+riot.tag2('login-section', '<form action="/auth" method="POST" target="auth" name="form"> <div class="login__section__logo"></div> <div class="login__section__form"> <div class="login__section__item login__section__item--login"> <div class="login__section__item__title">логин</div> <div class="login__section__item__circle login__section__item__circle--login"></div> <input class="login__section__input" name="username" type="text" placeholder="логин" spellcheck="false" autocomplete="off"> </div> <div class="login__section__item login__section__item--pass"> <div class="login__section__item__circle login__section__item__circle--pass"></div> <div class="login__section__item__title">пароль</div> <input class="login__section__input" name="password" type="text" placeholder="пароль" spellcheck="false" autocomplete="off"> </div> </div> <div class="login__section__footer"> <div class="login__section__button">Войти</div> </div> <iframe style="width:0; height:0;" name="auth" border="0"> </form>', '', 'class="login__section"', function(opts) {
 
     var $ = this,
     $scope = $$($.root);
 
     this.on("mount", function(){
 
-        $scope.find(".login__section__item__circle").on("click", function(){
-            $scope.addClass("login__section--input");
-            $scope.find(".login__section__input[name=login]").focus();
-        });
+        var $form = $$($.form);
 
-        $scope.find(".login__section__input").on("focus blur", function(e){
-            if (e.type === "focus"){
-                $scope.addClass("login__section--focus");
-            }
-            else if (e.type === "blur"){
-                $scope.removeClass("login__section--focus");
-            }
-        });
+        if (localStorage.user){
 
-        $scope.find(".login__section__button").on("click", function(e){
-            $scope.addClass("login__section--loading");
-            setTimeout(function(){
-                $scope.addClass("login__section--enter");
-            }, 1500);
-        });
+            $user = JSON.parse(localStorage.user);
+
+            $.username.value = $user.username;
+            $.password.value = $user.password;
+
+            $form.submit();
+        }
+        else {
+
+            $scope.addClass("login__section--active");
+
+            $scope.find(".login__section__item__circle").on("click", function(){
+                $scope.addClass("login__section--input");
+                $scope.find(".login__section__input[name=login]").focus();
+            });
+
+            $scope.find(".login__section__input").on("focus blur", function(e){
+                if (e.type === "focus"){
+                    $scope.addClass("login__section--focus");
+                }
+                else if (e.type === "blur"){
+                    $scope.removeClass("login__section--focus");
+                }
+            });
+
+            $scope.find(".login__section__button").on("click", function(e){
+
+                if (!$.username.value.length || !$.password.value.length){
+                    $scope.addClass("login__section--focus").addClass("login__section--input");
+                    $scope.find(".login__section__input:first").focus();
+                }
+                else {
+                    $scope.addClass("login__section--loading");
+                    app.utils.onEndTransition(this, function(){
+                        $form.submit();
+                    });
+                }
+            });
+
+            var onmessage = function(e) {
+    			var data = e.data,
+    				origin = e.origin;
+
+    			if (data){
+                    if (data.error){
+                        $scope.removeClass("login__section--loading");
+                        $root.tags["alert-window"].show({
+                            title: data.error
+                        });
+                    }
+                    else if (data.result === "OK"){
+                        console.dir(data.user);
+                        $scope.addClass("login__section--enter");
+                    }
+    			}
+    		};
+
+            if (typeof window.addEventListener != "undefined") {
+    			window.addEventListener("message", onmessage, false);
+    		} else if (typeof window.attachEvent != "undefined") {
+    			window.attachEvent("onmessage", onmessage);
+    		}
+        }
 
     });
+
+    $.next = function(){
+
+    };
 
 });
 
@@ -455,305 +506,13 @@ riot.tag2('popup-select', '<div class="popup__select__wrapper"> <div if="{type =
 
 });
 
-riot.tag2('root-section', '<section id="sections"> <dashboard-section></dashboard-section> <data-section></data-section> </section> <popup-select></popup-select> <alert-window></alert-window> <alarm-section></alarm-section>', '', 'id="root"', function(opts) {
+riot.tag2('root-section', '<login-section></login-section> <section id="sections"> <dashboard-section></dashboard-section> <data-section></data-section> </section> <popup-select></popup-select> <alert-window></alert-window> <alarm-section></alarm-section>', '', 'id="root"', function(opts) {
 
     $root = this;
 
     this.on("mount", function(){
-        app.sections.init("dashboard");
+        app.sections.init("data");
     });
-
-});
-
-riot.tag2('dashboard-balance', '<div id="dashboard__balance__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Ваш баланс</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right dashboard__balance__days"> 28 дн </div> </header> <div class="dashboard__screen"> <div class="dashboard__balance__label">остаток</div> <div id="dashboard__balance__big" class="dashboard__screen__circle"></div> </div> <div class="dashboard__balance__button">Пополнить баланс</div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="c-gray">12 мар 2016</div> <div class="t-right"><strong>1 250,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">7 мар 2016</div> <div class="t-right"><strong>3 480,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">5 мар 2016</div> <div class="t-right"><strong>900,0 Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("balance");
-    };
-
-    this.on("mount", function(){
-
-        $scope.find("#dashboard__balance__big").circliful({
-            foregroundColor: "#68f5ff",
-            foregroundBorderWidth: 8.5,
-            backgroundBorderWidth: 8.5,
-            showPercent: false,
-            percent: 88,
-            textFamily: "roboto",
-            textSize: "25px",
-            target: "4 750,0"
-        });
-
-        $.iScrollList = new IScroll($["dashboard__balance__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-    });
-
-});
-
-riot.tag2('dashboard-currency', '<div id="dashboard__currency__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Курсы валют</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen dashboard__screen--currency"> <div class="dashboard__screen__label">cегодня</div> <div class="dashboard__screen__label dashboard__screen__label--left">ЦБ РФ</div> <div class="dashboard__screen__currency dashboard__screen__currency--line"> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{data.get(⁗usd⁗)} <span class="dashboard__screen__currency__rub">Р</span></div> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">$</div> </div> <div class="dashboard__screen__currency"> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">&euro;</div> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{data.get(⁗euro⁗)} <span class="dashboard__screen__currency__rub">Р</span></div> </div> </div> <div class="dashboard__table"> <div each="{item in data.get(⁗items⁗)}" no-reorder class="dashboard__table__row"> <div class="dashboard__table__string c-gray">{item.title}</div> <div class="t-right"><strong>{item.value} Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.data = new Baobab({
-        usd: null,
-        euro: null,
-        items: []
-    });
-
-    this.on("mount", function(){
-
-        $.iScrollList = new IScroll($["dashboard__currency__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-    });
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("currency");
-    };
-
-});
-
-riot.tag2('dashboard-list', '<div id="dashboard__scroll" class="section__wrapper"> <div class="section__container section__container__dashboard"> <header class="header__dashboard"> <div class="header__title">Инфо-панель</div> <div class="header__left"> <div class="dashboard__openMenu header__icon UI__menu"><div class="UI__menu__item"></div></div> </div> <div class="header__right"> <div onclickdelegate="{openDataList}" class="dashboard__next__section header__icon header__icon__next__white"></div> </div> </header> <div onclickdelegate="{openBalance}" class="dashboard__tile dashboard__tile__balance"> <div class="dashboard__tile__label">пополнить</div> <div id="dashboard__balance" class="dashboard__circle"></div> <div class="dashboard__title"> <div class="dashboard__subtitle">Ваш баланс:</div> <div class="dashboard__balance">4 750,0 <span class="dashboard__balance__rub">Р</span></div> </div> </div> <div onclickdelegate="{openTraffic}" class="dashboard__tile dashboard__tile__traffic"> <div class="dashboard__tile__label">подробнее</div> <div id="dashboard__traffic__score" class="dashboard__circle"></div> <div class="dashboard__title">Входящие</div> </div> <div class="dashboard__tile"> <span id="dashboard__traffic__graph">5,3,9,6,5,9,7,3,5,2</span> </div> <div onclickdelegate="{openWeather}" class="dashboard__tile dashboard__tile__weather"> <div class="dashboard__tile__label">сегодня</div> <canvas id="partly-cloudy-night" class="dashboard__weather__canvas"></canvas> <div class="dashboard__weather"> <div class="dashboard__weather__temp">{data.weather.day > 0 ? ⁗+⁗ + data.weather.day : data.weather.day}...<span class="dashboard__weather__temp__to">{data.weather.night > 0 ? ⁗+⁗ + data.weather.night : data.weather.night}</span></div> <div class="dashboard__weather__text">{data.weather.type}</div> <div class="dashboard__weather__text">{data.weather.humidity}% / {data.weather.pressure} мм рт.с.</div> </div> </div> <div onclickdelegate="{openCurrency}" class="dashboard__tile dashboard__tile__currency"> <div class="dashboard__currency"> <div class="dashboard__currency__title">$</div> <div class="dashboard__currency__value">{data.currency.usd}</div> </div> <div class="dashboard__currency"> <div class="dashboard__currency__title">&euro;</div> <div class="dashboard__currency__value">{data.currency.euro}</div> </div> </div> </div> </div>', '', 'class="section section__primary"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $section = $$($.parent.root);
-
-    $.data = {
-        weather: {},
-        currency: {}
-    };
-
-    this.on("mount", function(){
-
-        $fetch('dashboard/init', "get").then(function(data){
-
-            var $weather = $.sections["weather"].tag,
-                $currency = $.sections["currency"].tag.data;
-
-            $weather.data = data.weather;
-            $.data.weather = data.weather.now;
-
-            $currency.set('items', data.currency);
-            var usd = $currency.get('items', {'code': 'USD'}, 'value'),
-                euro = $currency.get('items', {'code': 'EUR'}, 'value');
-
-            $currency.set('usd', String(usd).replace(/\./g, ','));
-            $currency.set('euro', String(euro).replace(/\./g, ','));
-
-            $.data.currency = {
-                usd: String(parseFloat(usd).toFixed(2)).replace(/\./g, ','),
-                euro: String(parseFloat(euro).toFixed(2)).replace(/\./g, ',')
-            };
-
-            $.update();
-            $.sections["weather"].tag.update();
-            $.sections["currency"].tag.update();
-            $.sections["currency"].tag.iScrollList.refresh();
-        });
-
-        $.sections = {
-            balance: {
-                tag: $.parent.tags["dashboard-balance"],
-                section: $$($.parent.tags["dashboard-balance"].root)
-            },
-            traffic: {
-                tag: $.parent.tags["dashboard-traffic"],
-                section: $$($.parent.tags["dashboard-traffic"].root)
-            },
-            weather: {
-                tag: $.parent.tags["dashboard-weather"],
-                section: $$($.parent.tags["dashboard-weather"].root)
-            },
-            currency: {
-                tag: $.parent.tags["dashboard-currency"],
-                section: $$($.parent.tags["dashboard-currency"].root)
-            }
-        };
-
-        $scope.find("#dashboard__balance").circliful({
-            foregroundColor: "#68f5ff",
-            backgroundColor: "#f0f4fb",
-            textColor: "#333947",
-            foregroundBorderWidth: 10,
-            backgroundBorderWidth: 10,
-            percent: 88
-        });
-
-        $scope.find("#dashboard__traffic__score").circliful({
-            foregroundColor: "#fcde30",
-            backgroundColor: "#f0f4fb",
-            textColor: "#333947",
-            foregroundBorderWidth: 10,
-            backgroundBorderWidth: 10,
-            textSize: "35px",
-            showPercent: false,
-            percent: 54,
-            target: 12
-        });
-
-        $scope.find("#dashboard__traffic__graph").peity("bar", {
-            fill: ["#839ae3", "#62e1d8"],
-            width: "100%",
-            height: "100px"
-        });
-
-        if (typeof Skycons !== 'undefined'){
-            var skycons = new Skycons(
-                {"color": "#839ae3"},
-                {"resizeClear": true}
-            );
-            skycons.add("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
-            skycons.play();
-        };
-
-        $.iScrollList = new IScroll($["dashboard__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-        app.iScrollDashboardList = $.iScrollList;
-
-    });
-
-    $.openDataList = function(e){
-        app.sections.nav("data");
-    };
-
-    $.openBalance = function(e){
-        $.openSection("balance");
-    };
-
-    $.openTraffic = function(e){
-        $.openSection("traffic");
-    };
-
-    $.openWeather = function(e){
-        $.openSection("weather");
-    };
-
-    $.openCurrency = function(e){
-        $.openSection("currency");
-    };
-
-    $.openSection = function(section){
-        $.sections[section].section.addClass("section--show");
-        $scope.addClass("section--hidden");
-
-        app.utils.onEndAnimation($.sections[section].section[0], function(){
-            $.sections[section].section.addClass("section--active").removeClass("section--show");
-            $.sections[section].tag.iScrollList.refresh();
-
-        });
-    };
-
-    $.closeSection = function(section){
-        $.sections[section].section.addClass("section--hidden");
-        $scope.removeClass("section--hidden");
-
-        app.utils.onEndAnimation($.sections[section].section[0], function(){
-            $.sections[section].section.removeClass("section--active").removeClass("section--hidden");
-
-        });
-    };
-
-});
-
-riot.tag2('dashboard-section', '<dashboard-list></dashboard-list> <dashboard-balance></dashboard-balance> <dashboard-traffic></dashboard-traffic> <dashboard-weather></dashboard-weather> <dashboard-currency></dashboard-currency>', '', 'data-marquee="dashboard" class="section section__marquee section__header__nofixed"', function(opts) {
-});
-
-riot.tag2('dashboard-traffic', '<div id="dashboard__traffic__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Статистика входящих</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">cегодня</div> <span id="dashboard__traffic__big">5,3,9,6</span> </div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#00d1fe"></span>Обратные звонки</div> <div class="w-15p t-center c-gray">12%</div> <div class="w-15p t-center"><strong>3</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ffe02d"></span>Онлайн-чаты</div> <div class="w-15p t-center c-gray">24%</div> <div class="w-15p t-center"><strong>5</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#b77de9"></span>Сообщения</div> <div class="w-15p t-center c-gray">27%</div> <div class="w-15p t-center"><strong>6</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ff9498"></span>Заявки</div> <div class="w-15p t-center c-gray">18%</div> <div class="w-15p t-center"><strong>4</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("traffic");
-    };
-
-    this.on("mount", function(){
-
-        $$($["dashboard__traffic__big"]).peity("donut", {
-
-            fill: ["#00d1fe", "#ffe02d", "#b77de9", "#ff9498"],
-            width: 176,
-            height: 176
-        });
-
-        $.iScrollList = new IScroll($["dashboard__traffic__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-
-    });
-
-});
-
-riot.tag2('dashboard-weather', '<div id="dashboard__weather__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Прогноз погоды</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">сейчас</div> <div class="dashboard__screen__label dashboard__screen__label--left">Москва</div> <div class="dashboard__screen__weather"> <div class="dashboard__screen__weather__description"> <div class="dashboard__screen__weather__temp">{data.now.temp > 0 ? ⁗+⁗ + data.now.temp : data.now.temp}</div> <div class="dashboard__screen__weather__text">{data.now.type}</div> <div class="dashboard__screen__weather__text">Влаж. {data.now.humidity}%</div> <div class="dashboard__screen__weather__text">{data.now.pressure} мм рт.ст.</div> </div> <div class="dashboard__screen__weather__svg"></div> </div> </div> <div class="dashboard__weather__week"> <div each="{item in data.days}" no-reorder class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">{getDate(item.date)}</div> <canvas id="dashboard__weather__week1" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">{item.day > 0 ? ⁗+⁗ + item.day : item.day}</div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
-
-    var $ = this,
-    $scope = $$($.root),
-    $dashboardList = $.parent.tags["dashboard-list"];
-
-    $.data = {};
-
-    this.on("mount", function(){
-
-        var skyconsWeek = new Skycons(
-            {"color": "#158ffe"},
-            {"resizeClear": true}
-        );
-        skyconsWeek.add("dashboard__weather__week1", Skycons.CLEAR_DAY);
-
-        $.iScrollList = new IScroll($["dashboard__weather__scroll"], {
-            scrollX: false,
-            scrollY: true
-        });
-
-        (function animationLoop(){
-            app.utils.raf(animationLoop);
-            app.utils.getScroll($.iScrollList);
-        })();
-    });
-
-    $.getDate = function(date){
-        return tempus(date).format('%d/%m');
-    };
-
-    $.onClose = function(e){
-        $dashboardList.closeSection("weather");
-    };
 
 });
 
@@ -1369,6 +1128,302 @@ console.log("scrollEnd");
 
 });
 
+riot.tag2('dashboard-balance', '<div id="dashboard__balance__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Ваш баланс</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right dashboard__balance__days"> 28 дн </div> </header> <div class="dashboard__screen"> <div class="dashboard__balance__label">остаток</div> <div id="dashboard__balance__big" class="dashboard__screen__circle"></div> </div> <div class="dashboard__balance__button">Пополнить баланс</div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="c-gray">12 мар 2016</div> <div class="t-right"><strong>1 250,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">7 мар 2016</div> <div class="t-right"><strong>3 480,0 Р</strong></div> </div> <div class="dashboard__table__row"> <div class="c-gray">5 мар 2016</div> <div class="t-right"><strong>900,0 Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("balance");
+    };
+
+    this.on("mount", function(){
+
+        $scope.find("#dashboard__balance__big").circliful({
+            foregroundColor: "#68f5ff",
+            foregroundBorderWidth: 8.5,
+            backgroundBorderWidth: 8.5,
+            showPercent: false,
+            percent: 88,
+            textFamily: "roboto",
+            textSize: "25px",
+            target: "4 750,0"
+        });
+
+        $.iScrollList = new IScroll($["dashboard__balance__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+    });
+
+});
+
+riot.tag2('dashboard-currency', '<div id="dashboard__currency__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Курсы валют</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen dashboard__screen--currency"> <div class="dashboard__screen__label">cегодня</div> <div class="dashboard__screen__label dashboard__screen__label--left">ЦБ РФ</div> <div class="dashboard__screen__currency dashboard__screen__currency--line"> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{data.get(⁗usd⁗)} <span class="dashboard__screen__currency__rub">Р</span></div> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">$</div> </div> <div class="dashboard__screen__currency"> <div class="dashboard__screen__currency__item dashboard__screen__currency__title">&euro;</div> <div class="dashboard__screen__currency__item dashboard__screen__currency__value">{data.get(⁗euro⁗)} <span class="dashboard__screen__currency__rub">Р</span></div> </div> </div> <div class="dashboard__table"> <div each="{item in data.get(⁗items⁗)}" no-reorder class="dashboard__table__row"> <div class="dashboard__table__string c-gray">{item.title}</div> <div class="t-right"><strong>{item.value} Р</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.data = new Baobab({
+        usd: null,
+        euro: null,
+        items: []
+    });
+
+    this.on("mount", function(){
+
+        $.iScrollList = new IScroll($["dashboard__currency__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+    });
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("currency");
+    };
+
+});
+
+riot.tag2('dashboard-list', '<div id="dashboard__scroll" class="section__wrapper"> <div class="section__container section__container__dashboard"> <header class="header__dashboard"> <div class="header__title">Инфо-панель</div> <div class="header__left"> <div class="dashboard__openMenu header__icon UI__menu"><div class="UI__menu__item"></div></div> </div> <div class="header__right"> <div onclickdelegate="{openDataList}" class="dashboard__next__section header__icon header__icon__next__white"></div> </div> </header> <div onclickdelegate="{openBalance}" class="dashboard__tile dashboard__tile__balance"> <div class="dashboard__tile__label">пополнить</div> <div id="dashboard__balance" class="dashboard__circle"></div> <div class="dashboard__title"> <div class="dashboard__subtitle">Ваш баланс:</div> <div class="dashboard__balance">4 750,0 <span class="dashboard__balance__rub">Р</span></div> </div> </div> <div onclickdelegate="{openTraffic}" class="dashboard__tile dashboard__tile__traffic"> <div class="dashboard__tile__label">подробнее</div> <div id="dashboard__traffic__score" class="dashboard__circle"></div> <div class="dashboard__title">Входящие</div> </div> <div class="dashboard__tile"> <span id="dashboard__traffic__graph">5,3,9,6,5,9,7,3,5,2</span> </div> <div onclickdelegate="{openWeather}" class="dashboard__tile dashboard__tile__weather"> <div class="dashboard__tile__label">сегодня</div> <canvas id="partly-cloudy-night" class="dashboard__weather__canvas"></canvas> <div class="dashboard__weather"> <div class="dashboard__weather__temp">{data.weather.day > 0 ? ⁗+⁗ + data.weather.day : data.weather.day}...<span class="dashboard__weather__temp__to">{data.weather.night > 0 ? ⁗+⁗ + data.weather.night : data.weather.night}</span></div> <div class="dashboard__weather__text">{data.weather.type}</div> <div class="dashboard__weather__text">{data.weather.humidity}% / {data.weather.pressure} мм рт.с.</div> </div> </div> <div onclickdelegate="{openCurrency}" class="dashboard__tile dashboard__tile__currency"> <div class="dashboard__currency"> <div class="dashboard__currency__title">$</div> <div class="dashboard__currency__value">{data.currency.usd}</div> </div> <div class="dashboard__currency"> <div class="dashboard__currency__title">&euro;</div> <div class="dashboard__currency__value">{data.currency.euro}</div> </div> </div> </div> </div>', '', 'class="section section__primary"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $section = $$($.parent.root);
+
+    $.data = {
+        weather: {},
+        currency: {}
+    };
+
+    $.init = function(start){
+        if (start){
+            $scope.find("#dashboard__balance").circliful({
+                foregroundColor: "#68f5ff",
+                backgroundColor: "#f0f4fb",
+                textColor: "#333947",
+                foregroundBorderWidth: 10,
+                backgroundBorderWidth: 10,
+                percent: 88
+            });
+
+            $scope.find("#dashboard__traffic__score").circliful({
+                foregroundColor: "#fcde30",
+                backgroundColor: "#f0f4fb",
+                textColor: "#333947",
+                foregroundBorderWidth: 10,
+                backgroundBorderWidth: 10,
+                textSize: "35px",
+                showPercent: false,
+                percent: 54,
+                target: 12
+            });
+
+            $scope.find("#dashboard__traffic__graph").peity("bar", {
+                fill: ["#839ae3", "#62e1d8"],
+                width: "100%",
+                height: "100px"
+            });
+
+            if (typeof Skycons !== 'undefined'){
+                var skycons = new Skycons(
+                    {"color": "#839ae3"},
+                    {"resizeClear": true}
+                );
+                skycons.add("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
+                skycons.play();
+            };
+        }
+
+        $fetch('dashboard/init', "get").then(function(data){
+            var $weather = $.sections["weather"].tag,
+                $currency = $.sections["currency"].tag.data;
+
+            $weather.data = data.weather;
+            $.data.weather = data.weather.now;
+
+            $currency.set('items', data.currency);
+            var usd = $currency.get('items', {'code': 'USD'}, 'value'),
+                euro = $currency.get('items', {'code': 'EUR'}, 'value');
+
+            $currency.set('usd', String(usd).replace(/\./g, ','));
+            $currency.set('euro', String(euro).replace(/\./g, ','));
+
+            $.data.currency = {
+                usd: String(parseFloat(usd).toFixed(2)).replace(/\./g, ','),
+                euro: String(parseFloat(euro).toFixed(2)).replace(/\./g, ',')
+            };
+
+            $.update();
+            $.sections["weather"].tag.update();
+            $.sections["currency"].tag.update();
+            $.sections["currency"].tag.iScrollList.refresh();
+        });
+    };
+
+    this.on("mount", function(){
+
+        $.init(true);
+
+        $.sections = {
+            balance: {
+                tag: $.parent.tags["dashboard-balance"],
+                section: $$($.parent.tags["dashboard-balance"].root)
+            },
+            traffic: {
+                tag: $.parent.tags["dashboard-traffic"],
+                section: $$($.parent.tags["dashboard-traffic"].root)
+            },
+            weather: {
+                tag: $.parent.tags["dashboard-weather"],
+                section: $$($.parent.tags["dashboard-weather"].root)
+            },
+            currency: {
+                tag: $.parent.tags["dashboard-currency"],
+                section: $$($.parent.tags["dashboard-currency"].root)
+            }
+        };
+
+        $.iScrollList = new IScroll($["dashboard__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+        app.iScrollDashboardList = $.iScrollList;
+    });
+
+    $.openDataList = function(e){
+        app.sections.nav("data");
+    };
+
+    $.openBalance = function(e){
+        $.openSection("balance");
+    };
+
+    $.openTraffic = function(e){
+        $.openSection("traffic");
+    };
+
+    $.openWeather = function(e){
+        $.openSection("weather");
+    };
+
+    $.openCurrency = function(e){
+        $.openSection("currency");
+    };
+
+    $.openSection = function(section){
+        $.sections[section].section.addClass("section--show");
+        $scope.addClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.addClass("section--active").removeClass("section--show");
+            $.sections[section].tag.iScrollList.refresh();
+
+        });
+    };
+
+    $.closeSection = function(section){
+        $.sections[section].section.addClass("section--hidden");
+        $scope.removeClass("section--hidden");
+
+        app.utils.onEndAnimation($.sections[section].section[0], function(){
+            $.sections[section].section.removeClass("section--active").removeClass("section--hidden");
+
+        });
+    };
+
+});
+
+riot.tag2('dashboard-section', '<dashboard-list></dashboard-list> <dashboard-balance></dashboard-balance> <dashboard-traffic></dashboard-traffic> <dashboard-weather></dashboard-weather> <dashboard-currency></dashboard-currency>', '', 'data-marquee="dashboard" class="section section__marquee section__header__nofixed"', function(opts) {
+});
+
+riot.tag2('dashboard-traffic', '<div id="dashboard__traffic__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Статистика входящих</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">cегодня</div> <span id="dashboard__traffic__big">5,3,9,6</span> </div> <div class="dashboard__table"> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#00d1fe"></span>Обратные звонки</div> <div class="w-15p t-center c-gray">12%</div> <div class="w-15p t-center"><strong>3</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ffe02d"></span>Онлайн-чаты</div> <div class="w-15p t-center c-gray">24%</div> <div class="w-15p t-center"><strong>5</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#b77de9"></span>Сообщения</div> <div class="w-15p t-center c-gray">27%</div> <div class="w-15p t-center"><strong>6</strong></div> </div> <div class="dashboard__table__row"> <div class="dashboard__table__title w-70p"><span class="dashboard__table__circle" style="background:#ff9498"></span>Заявки</div> <div class="w-15p t-center c-gray">18%</div> <div class="w-15p t-center"><strong>4</strong></div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("traffic");
+    };
+
+    this.on("mount", function(){
+
+        $$($["dashboard__traffic__big"]).peity("donut", {
+
+            fill: ["#00d1fe", "#ffe02d", "#b77de9", "#ff9498"],
+            width: 176,
+            height: 176
+        });
+
+        $.iScrollList = new IScroll($["dashboard__traffic__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+
+    });
+
+});
+
+riot.tag2('dashboard-weather', '<div id="dashboard__weather__scroll" class="section__wrapper"> <div class="section__container"> <header class="header__black"> <div class="header__title">Прогноз погоды</div> <div class="header__left"> <div onclickdelegate="{onClose}" class="alarm__list__close header__icon header__icon__back"></div> </div> <div class="header__right"> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </header> <div class="dashboard__screen"> <div class="dashboard__screen__label">сейчас</div> <div class="dashboard__screen__label dashboard__screen__label--left">Москва</div> <div class="dashboard__screen__weather"> <div class="dashboard__screen__weather__description"> <div class="dashboard__screen__weather__temp">{data.now.temp > 0 ? ⁗+⁗ + data.now.temp : data.now.temp}</div> <div class="dashboard__screen__weather__text">{data.now.type}</div> <div class="dashboard__screen__weather__text">Влаж. {data.now.humidity}%</div> <div class="dashboard__screen__weather__text">{data.now.pressure} мм рт.ст.</div> </div> <div class="dashboard__screen__weather__svg"></div> </div> </div> <div class="dashboard__weather__week"> <div each="{item in data.days}" no-reorder class="dashboard__weather__week__item"> <div class="dashboard__weather__week__title">{getDate(item.date)}</div> <canvas id="dashboard__weather__week1" class="dashboard__weather__week__canvas"></canvas> <div class="dashboard__weather__week__temp">{item.day > 0 ? ⁗+⁗ + item.day : item.day}</div> </div> </div> </div> </div>', '', 'class="section section__secondary section__header__nofixed"', function(opts) {
+
+    var $ = this,
+    $scope = $$($.root),
+    $dashboardList = $.parent.tags["dashboard-list"];
+
+    $.data = {};
+
+    this.on("mount", function(){
+
+        var skyconsWeek = new Skycons(
+            {"color": "#158ffe"},
+            {"resizeClear": true}
+        );
+        skyconsWeek.add("dashboard__weather__week1", Skycons.CLEAR_DAY);
+
+        $.iScrollList = new IScroll($["dashboard__weather__scroll"], {
+            scrollX: false,
+            scrollY: true
+        });
+
+        (function animationLoop(){
+            app.utils.raf(animationLoop);
+            app.utils.getScroll($.iScrollList);
+        })();
+    });
+
+    $.getDate = function(date){
+        return tempus(date).format('%d/%m');
+    };
+
+    $.onClose = function(e){
+        $dashboardList.closeSection("weather");
+    };
+
+});
+
 riot.tag2('data-header', '<div onclickdelegate="{openMenu}" class="header__title">{headerTitle}</div> <div class="header__left"> <div class="header__icon UI__menu"><div class="UI__menu__item"></div></div> </div> <div class="header__right"> <div onclickdelegate="{openAlarm}" class="header__icon header__icon__alarm header__icon__alarm--active"> <div class="header__icon__alarm__counts">3</div> </div> <div class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> <div class="header__data__panel {header__data__panel--active : show}"> <div class="header__left"> <div onclickdelegateupdate="{onClear}" class="header__icon header__icon__back__white"></div> <div class="header__icon header__data__panel__count">{counts}</div> </div> <div class="header__right"> <div onclickdelegateupdate="{onViewed}" class="header__icon header__data__panel__viewed"></div> <div onclickdelegateupdate="{onImportant}" class="header__icon header__data__panel__important"></div> <div onclickdelegate="{onRemove}" class="header__icon header__data__panel__remove"></div> <div onclickdelegate="{onStatus}" class="header__icon header__data__panel__folder"></div> <div onclickdelegate="{onCheckAll}" class="header__icon UI__menu__circleV UI__menu__circle--white"><div class="UI__menu__circle__item"></div></div> </div> </div> <div class="data__list__loader"> <i class="data__list__loader__blank"></i> </div>', '', 'class="header header__data__list"', function(opts) {
 
     var $ = this,
@@ -1459,12 +1514,10 @@ riot.tag2('data-header', '<div onclickdelegate="{openMenu}" class="header__title
     };
 
     $.onCheckAll = function(){
-        var counts = 0;
         $dataList.data.get('items', function(item){
-            item.checked = true;
-            counts++;
+            $dataList.data.select('items', {'_id': item._id}).set("checked", true);
         });
-        $.counts = counts;
+        $.counts = $dataList.data.get('items').length;
         $.update();
         $dataList.update();
     };
@@ -1706,7 +1759,7 @@ riot.tag2('data-list', '<div class="section__container section__container__data_
 
 });
 
-riot.tag2('data-menu', '<div onclickdelegateupdateall="{onSelect}" each="{items}" no-reorder class="data__menu__item {data__menu__item--active : name == value}"> <span class="data__menu__item__icon data__menu__item--{name}">{subtitle}</span> </div>', '', 'class="data__menu {data__menu--active : active}"', function(opts) {
+riot.tag2('data-menu', '<div onclickdelegateupdateall="{onSelect}" each="{items}" no-reorder class="data__menu__item {data__menu__item--active : name == value}"> <span class="data__menu__item__title data__menu__item--{name}"> {subtitle} <span if="{count > 0}" class="data__menu__item__count">{count}</span> </span> </div>', '', 'class="data__menu {data__menu--active : active}"', function(opts) {
 
     var $ = this,
     $scope = $$($.root),
@@ -1720,27 +1773,32 @@ riot.tag2('data-menu', '<div onclickdelegateupdateall="{onSelect}" each="{items}
         {
             title: "Звонки",
             subtitle: "Звонки c сайта",
-            name: "callback"
+            name: "callback",
+            count: 0
         },
         {
             title: "Письма",
             subtitle: "Все письма",
-            name: "feedback"
+            name: "feedback",
+            count: 1
         },
         {
             title: "Онлайн-чаты",
             subtitle: "Онлайн-чаты",
-            name: "chat"
+            name: "chat",
+            count: 2
         },
         {
             title: "Заявки",
             subtitle: "Все заявки",
-            name: "order"
+            name: "order",
+            count: 0
         },
         {
             title: "Входящие",
             subtitle: "Все входящие",
-            name: "inbox"
+            name: "inbox",
+            count: 0
         }
     ];
 

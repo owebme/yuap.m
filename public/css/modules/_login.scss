@@ -1,11 +1,12 @@
 .login__section {
+    display:none;
     @include abs();
-    background:#6a67ce;
+    background:linear-gradient(165deg, lighten($black_light, 6%), $black_light);
     color:#fff;
     padding-top:8%;
     text-align:center;
     overflow:hidden;
-    z-index:300;
+    z-index:150;
 }
 .login__section__logo {
     display:inline-block;
@@ -26,15 +27,9 @@
 }
 .login__section__item {
     position:relative;
-    padding:17.5px 0;
+    padding:25px 0;
     width:100%;
     @include flex("row", "center", "center");
-}
-.login__section__item--login {
-    padding-left:30px;
-}
-.login__section__item--pass {
-    padding-right:30px;
 }
 .login__section__item__title {
     font-size:19px;
@@ -45,7 +40,7 @@
     height:72px;
     margin:0 15px;
     border-radius:50%;
-    background:#fff;
+    background:#817bdf;
     @include flex("column", "center", "center");
 
     &:after {
@@ -99,13 +94,14 @@
     width:300px;
     height:62px;
     border-radius:50px;
-    background:#fff;
-    color:#6a67ce;
+    background:#817bdf;
+    color:#fff;
     font-size:20px;
     font-weight:bold;
     line-height:64px;
     letter-spacing:2px;
     text-transform:uppercase;
+    border:none;
     transition:all 0.5s $cubic215 0.5s;
 
     &:after {
@@ -117,11 +113,14 @@
         width:58px;
         height:58px;
         margin:-29px 0 0 -29px;
-		background:url(/public/images/loading_blue.svg) no-repeat 0 0 / cover;
-		transition:opacity 0.5s $cubic215 0.8s;
+		background:url(/public/images/loading_white.svg) no-repeat 0 0 / cover;
+		transition:opacity 0.5s $cubic215;
     }
 }
 
+.login__section--active {
+    display:block;
+}
 .login__section--input {
     .login__section__item {
         height:72px;
@@ -155,6 +154,7 @@
     }
     .login__section__button:after {
         opacity:1;
+        transition:opacity 0.5s $cubic215 0.8s;
         animation:spinner 1s infinite linear;
     }
 }
@@ -164,11 +164,18 @@
     transform:translate3d(-101%, 0, 0);
 
     .login__section__button {
+        background:#fff;
         transform:scale(25);
-        transition:transform .5s $cubic645;
+        transition:transform .5s $cubic645, background .3s $cubic215;
     }
     .login__section__button:after {
         display:none;
         animation:none;
+    }
+}
+
+@media screen and (max-width:320px){
+    .login__section__item {
+        padding:15px 0;
     }
 }

@@ -83,6 +83,7 @@ app.plugins.marquee = function($frame, settings){
 		preventDefault: true,
 		scrollbars: settings.vertical ? 'custom' : false,
 		interactiveScrollbars: settings.vertical && !app.device.support.touch,
+		deceleration: settings.vertical ? false : 0.0034,
 		fake: true
 	});
 	// {fn} set limits

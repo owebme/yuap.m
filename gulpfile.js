@@ -14,7 +14,7 @@ var reload = browserSync.reload;
 browserSync.init({
 	open: false,
 	notify: false,
-	proxy: "yuap.m"
+	proxy: "http://localhost:8080/"
 	// server: {
 		// baseDir: "./"
 	// }
@@ -54,13 +54,13 @@ gulp.task('js', function() {
 		
 	setTimeout(function(){	
 		gulp.src(['public/js/libs/zepto.min.js',
-			'bower_components/riot/riot.update.js',
-			'bower_components/tempusjs/min/tempusjs.min.js',
-			'bower_components/circliful/js/circliful.js',
-			'bower_components/peity/jquery.peity.js',
-			'bower_components/skycons-html5/skycons.js',
-			'bower_components/baobab/build/baobab.js',
-			'bower_components/underscore/underscore-min.js',
+			'public/js/libs/vendors/riot/riot.update.js',
+			'public/js/libs/vendors/tempusjs/min/tempusjs.min.js',
+			'public/js/libs/vendors/circliful/js/circliful.js',
+			'public/js/libs/vendors/peity/jquery.peity.js',
+			'public/js/libs/vendors/skycons-html5/skycons.js',
+			'public/js/libs/vendors/baobab/build/baobab.js',
+			'public/js/libs/vendors/underscore/underscore-min.js',
 			'public/js/libs/iscroll-lite.full.js',
 			'public/js/libs/modernizr.custom.js',
 			'public/js/components.js',
