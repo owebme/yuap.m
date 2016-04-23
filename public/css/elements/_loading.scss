@@ -1,7 +1,7 @@
 .loading__main {
     @include abs();
     @include flex("column", "center", "center");
-    background:#6563a4;
+    background-image:linear-gradient(165deg, #695da7, #5964a4);
     display:none;
     z-index:200;
 }

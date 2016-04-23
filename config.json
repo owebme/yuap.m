@@ -14,7 +14,7 @@
 		}
     },
     "session": {
-        "secret": "secret",
+        "secret": "irishka",
         "key": "sid",
         "cookie": {
             "path": "/",

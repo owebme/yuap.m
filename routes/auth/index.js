@@ -1,10 +1,13 @@
+var libs = process.cwd() + '/libs/';
+var utils = require(libs + 'utils');
 var mongoose = require('mongoose');
 var db = mongoose.connection;
 
 exports.post = function(req, res, next) {
 
 	var username = req.body.username,
-		password = req.body.password;
+		password = req.body.password,
+		logined = req.body.logined;
 		
 	if (!username || !password) return res.sendStatus(401);
 		
@@ -15,15 +18,17 @@ exports.post = function(req, res, next) {
 		else {
 			if (data.length){
 				var user = data[0];
-				if (user.password !== password){
+				if (logined === false && user.password !== utils.cryptoPass(password) || logined === true && user.password !== password){
 					res.send('<script language="Javascript" type="text/javascript">' +
 						'window.parent.postMessage({error: \'Не верный пароль\'}, "*");' +
 					'</script>');
 				}
 				else {
+					var _user = JSON.stringify(user);
 					req.session.user = user;
+					req.session.user.hash = utils.cryptoHash(user.username, user.password, user.sid);					
 					res.send('<script language="Javascript" type="text/javascript">' +
-						'window.parent.postMessage({result: \'OK\', user: ' + JSON.stringify(user) + '}, "*");' +
+						'window.parent.postMessage({result: \'OK\', user: ' + _user + '}, "*");' +
 					'</script>');
 				}
 			}

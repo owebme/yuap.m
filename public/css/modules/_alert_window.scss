@@ -35,6 +35,7 @@
 .alert__window__title {
     font-size:22px;
     line-height:24px;
+    text-align:center;
 }
 .alert__window__buttons {
     @include flex("row", "center", "center");

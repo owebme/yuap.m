@@ -1,5 +1,6 @@
 var libs = process.cwd() + '/libs/';
 var config = require(libs + 'config');
+var utils = require(libs + 'utils');
 var validator = require('validator');
 var MongoClient = require('mongodb').MongoClient;
 
@@ -24,7 +25,7 @@ var user = {
 	surname: "Юртаев",
 	city: "Москва",
 	username: "admin",
-	password: "1234",
+	password: utils.cryptoPass("1234"),
 	create: validator.toDate("2016-04-22 11:21"),
 	visite: validator.toDate("2016-04-22 11:21")
 }

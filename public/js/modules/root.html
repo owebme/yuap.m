@@ -18,6 +18,9 @@
 
     this.on("mount", function(){
         app.sections.init("data");
+        setTimeout(function(){
+            $$(".loading__main:first").removeClass("loading__main--active");
+        }, 500);
     });
 
 </script>

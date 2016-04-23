@@ -432,35 +432,41 @@ riot.tag2('login-section', '<form action="/auth" method="POST" target="auth" nam
                 }
             });
 
-            var onmessage = function(e) {
-    			var data = e.data,
-    				origin = e.origin;
-
-    			if (data){
-                    if (data.error){
-                        $scope.removeClass("login__section--loading");
-                        $root.tags["alert-window"].show({
-                            title: data.error
-                        });
-                    }
-                    else if (data.result === "OK"){
-                        console.dir(data.user);
-                        $scope.addClass("login__section--enter");
-                    }
-    			}
-    		};
-
-            if (typeof window.addEventListener != "undefined") {
-    			window.addEventListener("message", onmessage, false);
-    		} else if (typeof window.attachEvent != "undefined") {
-    			window.attachEvent("onmessage", onmessage);
-    		}
+            $$(".loading__main:first").removeClass("loading__main--active");
         }
 
+        var onmessage = function(e) {
+            var data = e.data,
+                origin = e.origin;
+
+            if (data){
+                if (data.error){
+                    $scope.removeClass("login__section--loading");
+                    $root.tags["alert-window"].show({
+                        title: data.error
+                    });
+                }
+                else if (data.result === "OK"){
+                    if (!localStorage.user) {
+                        $scope.addClass("login__section--enter");
+                    }
+                    $user = data.user;
+                    localStorage.user = JSON.stringify(data.user);
+                    $.next();
+                }
+            }
+        };
+
+        if (typeof window.addEventListener != "undefined") {
+            window.addEventListener("message", onmessage, false);
+        } else if (typeof window.attachEvent != "undefined") {
+            window.attachEvent("onmessage", onmessage);
+        }
     });
 
     $.next = function(){
-
+        $root.tags["data-section"].tags["data-list"].init();
+        $root.tags["dashboard-section"].tags["dashboard-list"].init();
     };
 
 });
@@ -512,6 +518,9 @@ riot.tag2('root-section', '<login-section></login-section> <section id="sections
 
     this.on("mount", function(){
         app.sections.init("data");
+        setTimeout(function(){
+            $$(".loading__main:first").removeClass("loading__main--active");
+        }, 500);
     });
 
 });
@@ -1207,45 +1216,7 @@ riot.tag2('dashboard-list', '<div id="dashboard__scroll" class="section__wrapper
         currency: {}
     };
 
-    $.init = function(start){
-        if (start){
-            $scope.find("#dashboard__balance").circliful({
-                foregroundColor: "#68f5ff",
-                backgroundColor: "#f0f4fb",
-                textColor: "#333947",
-                foregroundBorderWidth: 10,
-                backgroundBorderWidth: 10,
-                percent: 88
-            });
-
-            $scope.find("#dashboard__traffic__score").circliful({
-                foregroundColor: "#fcde30",
-                backgroundColor: "#f0f4fb",
-                textColor: "#333947",
-                foregroundBorderWidth: 10,
-                backgroundBorderWidth: 10,
-                textSize: "35px",
-                showPercent: false,
-                percent: 54,
-                target: 12
-            });
-
-            $scope.find("#dashboard__traffic__graph").peity("bar", {
-                fill: ["#839ae3", "#62e1d8"],
-                width: "100%",
-                height: "100px"
-            });
-
-            if (typeof Skycons !== 'undefined'){
-                var skycons = new Skycons(
-                    {"color": "#839ae3"},
-                    {"resizeClear": true}
-                );
-                skycons.add("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
-                skycons.play();
-            };
-        }
-
+    $.init = function(){
         $fetch('dashboard/init', "get").then(function(data){
             var $weather = $.sections["weather"].tag,
                 $currency = $.sections["currency"].tag.data;
@@ -1274,7 +1245,41 @@ riot.tag2('dashboard-list', '<div id="dashboard__scroll" class="section__wrapper
 
     this.on("mount", function(){
 
-        $.init(true);
+        $scope.find("#dashboard__balance").circliful({
+            foregroundColor: "#68f5ff",
+            backgroundColor: "#f0f4fb",
+            textColor: "#333947",
+            foregroundBorderWidth: 10,
+            backgroundBorderWidth: 10,
+            percent: 88
+        });
+
+        $scope.find("#dashboard__traffic__score").circliful({
+            foregroundColor: "#fcde30",
+            backgroundColor: "#f0f4fb",
+            textColor: "#333947",
+            foregroundBorderWidth: 10,
+            backgroundBorderWidth: 10,
+            textSize: "35px",
+            showPercent: false,
+            percent: 54,
+            target: 12
+        });
+
+        $scope.find("#dashboard__traffic__graph").peity("bar", {
+            fill: ["#839ae3", "#62e1d8"],
+            width: "100%",
+            height: "100px"
+        });
+
+        if (typeof Skycons !== 'undefined'){
+            var skycons = new Skycons(
+                {"color": "#839ae3"},
+                {"resizeClear": true}
+            );
+            skycons.add("partly-cloudy-night", Skycons.PARTLY_CLOUDY_NIGHT);
+            skycons.play();
+        };
 
         $.sections = {
             balance: {
@@ -1656,7 +1661,7 @@ riot.tag2('data-list', '<div class="section__container section__container__data_
         )
     });
 
-    this.on("mount", function(){
+    $.init = function(){
 
             $fetch('data/list/init', "get").then(function(data){
                 $.data.set('items', data.list);
@@ -1665,6 +1670,10 @@ riot.tag2('data-list', '<div class="section__container section__container__data_
 
                 $.iScrollList.refresh();
             });
+
+    };
+
+    this.on("mount", function(){
 
         $.panel = $.parent.tags["data-header"];
 
