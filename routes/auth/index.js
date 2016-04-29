@@ -18,7 +18,7 @@ exports.post = function(req, res, next) {
 		else {
 			if (data.length){
 				var user = data[0];
-				if (logined === false && user.password !== utils.cryptoPass(password) || logined === true && user.password !== password){
+				if (logined === "false" && user.password !== utils.cryptoPass(password) || logined === "true" && user.password !== password){
 					res.send('<script language="Javascript" type="text/javascript">' +
 						'window.parent.postMessage({error: \'Не верный пароль\'}, "*");' +
 					'</script>');

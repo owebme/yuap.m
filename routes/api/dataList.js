@@ -48,6 +48,24 @@ app.get('/init', function(req, res) {
 	});
 });
 
+app.get('/select/:type', function(req, res) {
+
+	db.collection('data').find({"sid": req.session.user.sid, "type": req.params.type}).sort({"date": -1}).limit(20).toArray(function(err, data){
+		if (!data) {
+			res.statusCode = 404;
+			return res.send({error: 'Not found'});
+		}
+		if (!err) {
+			return res.send({status: 'OK', result: data});
+		}
+		else {
+			res.statusCode = 500;
+			log.error('Internal error(%d): %s', res.statusCode, err.message);
+			return res.send({error: 'Server error'});
+		}
+	});
+});
+
 app.put('/viewed', function(req, res) {
 
 	if (!req.body.length) return;
